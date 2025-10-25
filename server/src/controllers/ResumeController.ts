@@ -25,19 +25,23 @@ export class ResumeController {
    */
   static async uploadResume(req: Request, res: Response): Promise<void> {
     try {
+      console.log('📤 POST /api/upload - File upload received');
+      
       if (!req.file) {
+        console.log('❌ No file uploaded');
         res.status(400).json({ success: false, error: 'No file uploaded' });
         return;
       }
 
+      console.log(`📄 Processing file: ${req.file.originalname} (${req.file.size} bytes)`);
       const filePath = req.file.path;
       const fileExtension = path.extname(req.file.originalname).toLowerCase();
       
       const parsedData = await DocumentParser.parseResume(filePath, fileExtension);
       
       // Debug logging
-      console.log('Parsed text length:', parsedData.text.length);
-      console.log('Detected sections:', {
+      console.log('📊 Parsed text length:', parsedData.text.length);
+      console.log('📊 Detected sections:', {
         personalSummary: parsedData.sections.personalSummary.length,
         workExperience: parsedData.sections.workExperience.length,
         projects: parsedData.sections.projects.length
@@ -106,7 +110,9 @@ export class ResumeController {
    */
   static async getVersions(req: Request, res: Response): Promise<void> {
     try {
+      console.log('📋 GET /api/versions - Fetching saved versions');
       const versions = await VersionManager.getAllVersions();
+      console.log(`📋 Found ${versions.length} saved versions`);
 
       const response: ApiResponse = {
         success: true,
@@ -116,7 +122,7 @@ export class ResumeController {
       res.json(response);
 
     } catch (error) {
-      console.error('Get versions error:', error);
+      console.error('❌ Get versions error:', error);
       const response: ApiResponse = {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to load versions'

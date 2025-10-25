@@ -23,32 +23,61 @@ const Versions: React.FC = () => {
     try {
       setLoading(true);
       const response = await axios.get(API_ENDPOINTS.GET_VERSIONS);
-      setVersions(response.data.versions);
+      console.log('API Response:', response.data);
+      
+      // Handle different response structures
+      if (response.data.success && response.data.data && response.data.data.versions) {
+        setVersions(response.data.data.versions);
+      } else if (Array.isArray(response.data.versions)) {
+        setVersions(response.data.versions);
+      } else if (Array.isArray(response.data)) {
+        setVersions(response.data);
+      } else {
+        console.warn('Unexpected API response structure:', response.data);
+        setVersions([]);
+      }
     } catch (error) {
       console.error('Error fetching versions:', error);
       setError('Failed to load saved versions');
+      setVersions([]); // Ensure versions is always an array
     } finally {
       setLoading(false);
     }
   };
 
   const handleLoadVersion = (version: Version) => {
-    // Store the version data in sessionStorage and redirect to editor
-    sessionStorage.setItem('resumeData', JSON.stringify({
-      sections: version.sections,
-      originalText: '' // We don't have original text for saved versions
-    }));
-    window.location.href = '/editor';
+    try {
+      console.log('📋 Loading version for company:', version.companyName);
+      
+      // Store the version data in sessionStorage and redirect to editor
+      const dataToStore = {
+        sections: version.sections,
+        originalText: '', // We don't have original text for saved versions
+        companyName: version.companyName // Include the company name
+      };
+      
+      console.log('📋 Storing data:', dataToStore);
+      sessionStorage.setItem('resumeData', JSON.stringify(dataToStore));
+      window.location.href = '/editor';
+    } catch (error) {
+      console.error('Error loading version:', error);
+      alert('Failed to load version. Please try again.');
+    }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
   if (loading) {
@@ -59,6 +88,9 @@ const Versions: React.FC = () => {
       </div>
     );
   }
+
+  // Ensure versions is always an array
+  const safeVersions = versions || [];
 
   if (error) {
     return (
@@ -79,7 +111,7 @@ const Versions: React.FC = () => {
         <p>Manage your customized resume versions for different companies</p>
       </div>
 
-      {versions.length === 0 ? (
+      {safeVersions.length === 0 ? (
         <div className="no-versions">
           <div className="no-versions-icon">📄</div>
           <h2>No saved versions yet</h2>
@@ -90,7 +122,7 @@ const Versions: React.FC = () => {
         </div>
       ) : (
         <div className="versions-grid">
-          {versions.map((version) => (
+          {safeVersions.map((version) => (
             <div key={version.id} className="version-card">
               <div className="version-header">
                 <h3>{version.companyName}</h3>

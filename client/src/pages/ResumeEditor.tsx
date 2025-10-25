@@ -22,6 +22,7 @@ interface ResumeData {
     }>;
   };
   originalText: string;
+  companyName?: string; // Optional company name for loaded versions
 }
 
 const ResumeEditor: React.FC = () => {
@@ -33,7 +34,14 @@ const ResumeEditor: React.FC = () => {
   useEffect(() => {
     const storedData = sessionStorage.getItem('resumeData');
     if (storedData) {
-      setResumeData(JSON.parse(storedData));
+      const parsedData = JSON.parse(storedData);
+      setResumeData(parsedData);
+      
+      // Load company name if it exists (for loaded versions)
+      if (parsedData.companyName) {
+        setCompanyName(parsedData.companyName);
+        console.log('📋 Loaded version for company:', parsedData.companyName);
+      }
     } else {
       navigate('/');
     }
@@ -125,6 +133,11 @@ const ResumeEditor: React.FC = () => {
             onChange={(e) => setCompanyName(e.target.value)}
             className="company-name-input"
           />
+          {resumeData?.companyName && (
+            <div className="version-indicator">
+              📋 Loaded version for: <strong>{resumeData.companyName}</strong>
+            </div>
+          )}
         </div>
       </div>
 
