@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 import './Versions.css';
 
 interface Version {
@@ -21,7 +22,7 @@ const Versions: React.FC = () => {
   const fetchVersions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/versions');
+      const response = await axios.get(API_ENDPOINTS.GET_VERSIONS);
       setVersions(response.data.versions);
     } catch (error) {
       console.error('Error fetching versions:', error);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 import SectionEditor from '../components/SectionEditor';
 import ExportButtons from '../components/ExportButtons';
 import './ResumeEditor.css';
@@ -58,7 +59,7 @@ const ResumeEditor: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/save-version', {
+      const response = await axios.post(API_ENDPOINTS.SAVE_VERSION, {
         companyName: companyName.trim(),
         sections: resumeData.sections
       });
@@ -82,7 +83,7 @@ const ResumeEditor: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/export/${format}`, {
+      const response = await axios.post(API_ENDPOINTS[format === 'word' ? 'EXPORT_WORD' : 'EXPORT_PDF'], {
         sections: resumeData.sections,
         companyName: companyName.trim()
       }, {

@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 import './FileUpload.css';
 
 interface FileUploadProps {
@@ -21,7 +22,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess, isUploading, s
     formData.append('resume', file);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/upload', formData, {
+      const response = await axios.post(API_ENDPOINTS.UPLOAD, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
