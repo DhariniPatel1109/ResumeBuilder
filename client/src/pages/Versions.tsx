@@ -14,6 +14,7 @@ const Versions: React.FC = () => {
   const [versions, setVersions] = useState<Version[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVersions();
@@ -77,6 +78,36 @@ const Versions: React.FC = () => {
     } catch (error) {
       console.error('Error formatting date:', error);
       return 'Invalid Date';
+    }
+  };
+
+  const handleExport = async (version: Version, format: 'word' | 'pdf') => {
+    try {
+      setExporting(`${version.id}-${format}`);
+      console.log(`📤 Exporting ${format.toUpperCase()} for ${version.companyName}`);
+
+      const response = await axios.post(API_ENDPOINTS[format === 'word' ? 'EXPORT_WORD' : 'EXPORT_PDF'], {
+        sections: version.sections,
+        companyName: version.companyName
+      }, {
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Resume_${version.companyName.replace(/\s+/g, '_')}.${format === 'word' ? 'docx' : 'pdf'}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      console.log(`✅ ${format.toUpperCase()} exported successfully`);
+    } catch (error) {
+      console.error(`❌ Export ${format.toUpperCase()} error:`, error);
+      alert(`Failed to export ${format.toUpperCase()}. Please try again.`);
+    } finally {
+      setExporting(null);
     }
   };
 
@@ -155,6 +186,42 @@ const Versions: React.FC = () => {
                 >
                   📝 Edit Version
                 </button>
+                
+                <div className="export-buttons">
+                  <button
+                    onClick={() => handleExport(version, 'word')}
+                    disabled={exporting === `${version.id}-word`}
+                    className="export-button word-export"
+                  >
+                    {exporting === `${version.id}-word` ? (
+                      <>
+                        <div className="spinner-small"></div>
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        📄 Export Word
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => handleExport(version, 'pdf')}
+                    disabled={exporting === `${version.id}-pdf`}
+                    className="export-button pdf-export"
+                  >
+                    {exporting === `${version.id}-pdf` ? (
+                      <>
+                        <div className="spinner-small"></div>
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        📋 Export PDF
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
