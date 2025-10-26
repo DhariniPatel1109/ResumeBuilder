@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs-extra';
 import resumeRoutes from './routes/resumeRoutes';
+import aiRoutes from './routes/aiRoutes';
 import { ErrorHandler } from './middleware/errorHandler';
 import { config } from './config';
 import { env } from './config/env';
@@ -48,6 +49,7 @@ ensureDirectories();
 
 // API routes
 app.use('/api', resumeRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

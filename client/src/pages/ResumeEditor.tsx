@@ -4,6 +4,11 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
 import SectionEditor from '../components/SectionEditor';
 import ExportButtons from '../components/ExportButtons';
+import JobDescriptionInput from '../components/ai/JobDescriptionInput';
+import AIEnhancementToggle from '../components/ai/AIEnhancementToggle';
+import AIProcessingIndicator from '../components/ai/AIProcessingIndicator';
+import AISuggestionsReview from '../components/ai/AISuggestionsReview';
+import { useAIEnhancement } from '../hooks/useAIEnhancement';
 import './ResumeEditor.css';
 
 interface ResumeData {
@@ -29,7 +34,28 @@ const ResumeEditor: React.FC = () => {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
   const navigate = useNavigate();
+
+  // AI Enhancement hook
+  const {
+    isEnabled: aiEnabled,
+    jobDescription,
+    isProcessing: aiProcessing,
+    suggestions,
+    error: aiError,
+    hasJobDescription,
+    canStartEnhancement,
+    hasSuggestions,
+    hasError,
+    updateJobDescription,
+    toggleAIEnhancement,
+    startEnhancement,
+    applySuggestions,
+    clearSuggestions,
+    clearError,
+  } = useAIEnhancement();
 
   useEffect(() => {
     const storedData = sessionStorage.getItem('resumeData');
@@ -112,6 +138,65 @@ const ResumeEditor: React.FC = () => {
     }
   };
 
+  // AI Enhancement handlers
+  const handleStartAIEnhancement = async () => {
+    if (!resumeData || !canStartEnhancement) return;
+
+    try {
+      await startEnhancement(resumeData.sections);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('AI enhancement error:', error);
+    }
+  };
+
+  const handleApplyAISuggestions = async (suggestionIds: string[]) => {
+    if (!suggestions) return;
+
+    setIsApplyingSuggestions(true);
+    try {
+      await applySuggestions(suggestionIds);
+      
+      // Apply suggestions to local state
+      const updatedSections = { ...resumeData!.sections };
+      
+      if (suggestions.personalSummary && suggestionIds.includes(suggestions.personalSummary.id)) {
+        updatedSections.personalSummary = suggestions.personalSummary.enhanced;
+      }
+
+      suggestions.workExperience.forEach(suggestion => {
+        if (suggestionIds.includes(suggestion.id)) {
+          const workExp = updatedSections.workExperience[suggestion.bulletIndex];
+          if (workExp) {
+            workExp.bullets[suggestion.bulletIndex] = suggestion.enhanced;
+          }
+        }
+      });
+
+      suggestions.projects.forEach(suggestion => {
+        if (suggestionIds.includes(suggestion.id)) {
+          const project = updatedSections.projects[suggestion.bulletIndex];
+          if (project) {
+            project.bullets[suggestion.bulletIndex] = suggestion.enhanced;
+          }
+        }
+      });
+
+      setResumeData(prev => prev ? { ...prev, sections: updatedSections } : null);
+      setShowSuggestions(false);
+      clearSuggestions();
+    } catch (error) {
+      console.error('Error applying suggestions:', error);
+    } finally {
+      setIsApplyingSuggestions(false);
+    }
+  };
+
+  const handleCancelAISuggestions = () => {
+    setShowSuggestions(false);
+    clearSuggestions();
+  };
+
   if (!resumeData) {
     return (
       <div className="loading">
@@ -139,6 +224,80 @@ const ResumeEditor: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* AI Enhancement Section */}
+      <div className="ai-enhancement-section">
+        <JobDescriptionInput
+          value={jobDescription}
+          onChange={updateJobDescription}
+          onClear={() => updateJobDescription('')}
+          disabled={aiProcessing}
+        />
+        
+        <AIEnhancementToggle
+          isEnabled={aiEnabled}
+          onToggle={toggleAIEnhancement}
+          isProcessing={aiProcessing}
+          hasJobDescription={hasJobDescription}
+          disabled={aiProcessing}
+        />
+
+        {aiEnabled && hasJobDescription && !aiProcessing && !hasSuggestions && (
+          <div className="ai-action-buttons">
+            <button
+              onClick={handleStartAIEnhancement}
+              className="ai-enhance-button"
+            >
+              🤖 Start AI Enhancement
+            </button>
+            <div className="ai-help-text">
+              <span className="help-icon">💡</span>
+              <span>AI will analyze your job description and enhance your resume content</span>
+            </div>
+          </div>
+        )}
+
+        {!aiEnabled && hasJobDescription && (
+          <div className="ai-prompt">
+            <div className="prompt-content">
+              <span className="prompt-icon">🚀</span>
+              <span>Ready for AI enhancement! Enable the toggle above to get started.</span>
+            </div>
+          </div>
+        )}
+
+        {aiEnabled && !hasJobDescription && (
+          <div className="ai-prompt">
+            <div className="prompt-content">
+              <span className="prompt-icon">📝</span>
+              <span>Add a job description above to enable AI enhancement.</span>
+            </div>
+          </div>
+        )}
+
+        {hasError && (
+          <div className="ai-error">
+            <span className="error-icon">❌</span>
+            <span className="error-message">{aiError}</span>
+            <button onClick={clearError} className="error-dismiss">✕</button>
+          </div>
+        )}
+
+        {/* Development test button - remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="dev-test-section">
+            <button
+              onClick={() => {
+                updateJobDescription("Software Engineer position requiring React, Node.js, and JavaScript skills. Looking for someone with experience in web development, API design, and team collaboration.");
+                toggleAIEnhancement(true);
+              }}
+              className="dev-test-button"
+            >
+              🧪 Fill Test Data
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="editor-content">
@@ -175,6 +334,31 @@ const ResumeEditor: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* AI Processing Indicator */}
+      <AIProcessingIndicator
+        isVisible={aiProcessing}
+        onComplete={() => setShowSuggestions(true)}
+        onCancel={() => {
+          // Cancel AI processing
+          clearSuggestions();
+        }}
+      />
+
+      {/* AI Suggestions Review Modal */}
+      {showSuggestions && suggestions && (
+        <div className="ai-suggestions-modal">
+          <div className="modal-overlay" onClick={handleCancelAISuggestions} />
+          <div className="modal-content">
+            <AISuggestionsReview
+              suggestions={suggestions}
+              onApplySuggestions={handleApplyAISuggestions}
+              onCancel={handleCancelAISuggestions}
+              isApplying={isApplyingSuggestions}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,6 +7,10 @@ export const API_ENDPOINTS = {
   GET_VERSIONS: `${API_BASE_URL}/api/versions`,
   EXPORT_WORD: `${API_BASE_URL}/api/export/word`,
   EXPORT_PDF: `${API_BASE_URL}/api/export/pdf`,
+  // AI Enhancement endpoints
+  AI_ENHANCE: `${API_BASE_URL}/api/ai/enhance`,
+  AI_STATUS: `${API_BASE_URL}/api/ai/status`,
+  AI_APPLY: `${API_BASE_URL}/api/ai/apply`,
 } as const;
 
 export default API_BASE_URL;
