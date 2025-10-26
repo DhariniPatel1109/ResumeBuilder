@@ -3,32 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
 import SectionEditor from '../components/SectionEditor';
+import DynamicSectionEditor from '../components/DynamicSectionEditor';
 import ExportButtons from '../components/ExportButtons';
 import JobDescriptionInput from '../components/ai/JobDescriptionInput';
 import AIEnhancementToggle from '../components/ai/AIEnhancementToggle';
 import AIProcessingIndicator from '../components/ai/AIProcessingIndicator';
 import AISuggestionsReview from '../components/ai/AISuggestionsReview';
 import { useAIEnhancement } from '../hooks/useAIEnhancement';
+import { ResumeData, DynamicSection } from '../types';
 import './ResumeEditor.css';
-
-interface ResumeData {
-  sections: {
-    personalSummary: string;
-    workExperience: Array<{
-      title: string;
-      company: string;
-      duration: string;
-      bullets: string[];
-    }>;
-    projects: Array<{
-      name: string;
-      description: string;
-      bullets: string[];
-    }>;
-  };
-  originalText: string;
-  companyName?: string; // Optional company name for loaded versions
-}
 
 const ResumeEditor: React.FC = () => {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
@@ -60,13 +43,33 @@ const ResumeEditor: React.FC = () => {
   useEffect(() => {
     const storedData = sessionStorage.getItem('resumeData');
     if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      setResumeData(parsedData);
-      
-      // Load company name if it exists (for loaded versions)
-      if (parsedData.companyName) {
-        setCompanyName(parsedData.companyName);
-        console.log('📋 Loaded version for company:', parsedData.companyName);
+      try {
+        const parsedData = JSON.parse(storedData);
+        console.log('📋 Loaded resume data:', parsedData);
+        
+        // Validate and normalize the data structure
+        const normalizedData = {
+          sections: {
+            personalSummary: parsedData.sections?.personalSummary || parsedData.personalSummary || '',
+            workExperience: parsedData.sections?.workExperience || parsedData.workExperience || [],
+            projects: parsedData.sections?.projects || parsedData.projects || []
+          },
+          originalText: parsedData.originalText || '',
+          companyName: parsedData.companyName
+        };
+        
+        console.log('📋 Normalized resume data:', normalizedData);
+        setResumeData(normalizedData);
+        
+        // Load company name if it exists (for loaded versions)
+        if (parsedData.companyName) {
+          setCompanyName(parsedData.companyName);
+          console.log('📋 Loaded version for company:', parsedData.companyName);
+        }
+      } catch (error) {
+        console.error('❌ Error parsing resume data:', error);
+        alert('Error loading resume data. Please try uploading again.');
+        navigate('/');
       }
     } else {
       navigate('/');
@@ -81,6 +84,24 @@ const ResumeEditor: React.FC = () => {
       sections: {
         ...resumeData.sections,
         [sectionType]: data
+      }
+    });
+  };
+
+  const handleDynamicSectionUpdate = (sectionName: string, content: any) => {
+    if (!resumeData || !resumeData.sections.dynamicSections) return;
+
+    setResumeData({
+      ...resumeData,
+      sections: {
+        ...resumeData.sections,
+        dynamicSections: {
+          ...resumeData.sections.dynamicSections,
+          [sectionName]: {
+            ...resumeData.sections.dynamicSections[sectionName],
+            content
+          }
+        }
       }
     });
   };
@@ -302,26 +323,45 @@ const ResumeEditor: React.FC = () => {
 
       <div className="editor-content">
         <div className="sections">
+          {/* Standard Sections */}
           <SectionEditor
             title="Personal Summary"
-            content={resumeData.sections.personalSummary}
+            content={resumeData.sections?.personalSummary || ''}
             onUpdate={(content) => handleSectionUpdate('personalSummary', content)}
             type="text"
           />
 
           <SectionEditor
             title="Work Experience"
-            content={resumeData.sections.workExperience}
+            content={resumeData.sections?.workExperience || []}
             onUpdate={(content) => handleSectionUpdate('workExperience', content)}
             type="experience"
           />
 
           <SectionEditor
             title="Projects"
-            content={resumeData.sections.projects}
+            content={resumeData.sections?.projects || []}
             onUpdate={(content) => handleSectionUpdate('projects', content)}
             type="projects"
           />
+
+          {/* Dynamic Sections */}
+          {resumeData.sections?.dynamicSections && Object.keys(resumeData.sections.dynamicSections).length > 0 && (
+            <div className="dynamic-sections">
+              <h2 className="dynamic-sections-title">Additional Sections</h2>
+              <p className="dynamic-sections-description">
+                These sections were automatically detected from your resume. You can edit them individually.
+              </p>
+              {Object.entries(resumeData.sections.dynamicSections).map(([sectionName, section]) => (
+                <DynamicSectionEditor
+                  key={sectionName}
+                  sectionName={sectionName}
+                  section={section}
+                  onUpdate={(content) => handleDynamicSectionUpdate(sectionName, content)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="actions">

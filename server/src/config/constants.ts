@@ -23,6 +23,10 @@ export const API_CONSTANTS = {
     VERSION_SAVED: 'Version saved successfully',
     EXPORT_SUCCESS: 'Export completed successfully',
     HEALTH_CHECK: 'Server is running',
+    TOO_MANY_REQUESTS: 'Too many requests from this IP, please try again later.',
+    MISSING_REQUIRED_FIELDS: 'Missing required fields',
+    SESSION_NOT_FOUND: 'Session not found',
+    INTERNAL_SERVER_ERROR: 'Internal server error',
   },
 
   // File Processing

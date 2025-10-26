@@ -25,6 +25,9 @@ export const env = {
   CORS_ORIGIN: process.env.CORS_ORIGIN || process.env.CLIENT_URL || 'http://localhost:3000',
   ENABLE_HELMET: process.env.ENABLE_HELMET !== 'false',
 
+  // AI Configuration
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+
   // Development
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
   IS_PRODUCTION: process.env.NODE_ENV === 'production',

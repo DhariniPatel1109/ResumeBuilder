@@ -317,3 +317,47 @@
     max-height: 95vh;
   }
 }
+
+/* Dynamic Sections */
+.dynamic-sections {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 2px solid #e1e5e9;
+}
+
+.dynamic-sections-title {
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dynamic-sections-title::before {
+  content: "🔧";
+  font-size: 20px;
+}
+
+.dynamic-sections-description {
+  color: #6c757d;
+  font-size: 14px;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+  background: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border-left: 4px solid #667eea;
+}
+
+@media (max-width: 768px) {
+  .dynamic-sections {
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+  
+  .dynamic-sections-title {
+    font-size: 20px;
+  }
+}

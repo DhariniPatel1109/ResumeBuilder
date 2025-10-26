@@ -7,9 +7,13 @@ const Home: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
-  const handleUploadSuccess = (data: any) => {
+  const handleUploadSuccess = (responseData: any) => {
+    // Extract the actual data from the response
+    const resumeData = responseData.data || responseData;
+    console.log('📋 Storing resume data:', resumeData);
+    
     // Store parsed data in sessionStorage for the editor
-    sessionStorage.setItem('resumeData', JSON.stringify(data));
+    sessionStorage.setItem('resumeData', JSON.stringify(resumeData));
     navigate('/editor');
   };
 

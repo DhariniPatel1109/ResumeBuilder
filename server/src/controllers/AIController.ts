@@ -1,7 +1,9 @@
 // AI Controller for Resume Enhancement
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import OpenAI from 'openai';
 import { API_CONSTANTS } from '../config/constants';
+import { env } from '../config/env';
 
 interface AIEnhancementRequest {
   jobDescription: string;
@@ -57,6 +59,11 @@ interface AIEnhancementResponse {
 
 // In-memory storage for AI sessions (in production, use Redis or database)
 const aiSessions = new Map<string, any>();
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: env.OPENAI_API_KEY,
+});
 
 export class AIController {
   /**
@@ -201,10 +208,227 @@ export class AIController {
   }
 
   /**
-   * Generate AI suggestions (mock implementation)
-   * In production, integrate with OpenAI, Claude, or other AI services
+   * Generate AI suggestions using GPT-3.5 Turbo
    */
   private static async generateAISuggestions(
+    jobDescription: string, 
+    resumeData: any
+  ): Promise<AIEnhancementResponse['suggestions']> {
+    
+    if (!env.OPENAI_API_KEY) {
+      console.warn('⚠️ OpenAI API key not found, falling back to mock AI');
+      return AIController.generateMockSuggestions(jobDescription, resumeData);
+    }
+
+    try {
+      const prompt = AIController.buildEnhancementPrompt(jobDescription, resumeData);
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional resume enhancement expert. Analyze job descriptions and improve resume content with stronger action verbs, relevant keywords, and quantifiable results. Always maintain professional tone and accuracy."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      });
+
+      const aiResponse = response.choices[0].message.content;
+      if (!aiResponse) {
+        throw new Error('No response from OpenAI');
+      }
+
+      return AIController.parseAIResponse(aiResponse, resumeData);
+
+    } catch (error) {
+      console.error('❌ OpenAI API error:', error);
+      console.warn('⚠️ Falling back to mock AI suggestions');
+      return AIController.generateMockSuggestions(jobDescription, resumeData);
+    }
+  }
+
+  /**
+   * Enhance personal summary (mock implementation)
+   */
+  private static enhancePersonalSummary(original: string, jobDescription: string): string {
+    // Simple enhancement logic - in production, use AI service
+    const keywords = AIController.extractKeywords(jobDescription);
+    const enhanced = original + `\n\nKey skills: ${keywords.slice(0, 3).join(', ')}.`;
+    return enhanced;
+  }
+
+  /**
+   * Enhance bullet point (mock implementation)
+   */
+  private static enhanceBulletPoint(original: string, jobDescription: string): string {
+    // Simple enhancement logic - in production, use AI service
+    const keywords = AIController.extractKeywords(jobDescription);
+    
+    // Add some mock enhancements
+    if (original.toLowerCase().includes('developed')) {
+      return original.replace(/developed/gi, 'Architected and developed');
+    }
+    
+    if (original.toLowerCase().includes('managed')) {
+      return original.replace(/managed/gi, 'Led and managed');
+    }
+    
+    if (original.toLowerCase().includes('improved')) {
+      return original.replace(/improved/gi, 'Optimized and improved');
+    }
+    
+    return original;
+  }
+
+  /**
+   * Build enhancement prompt for GPT-3.5 Turbo
+   */
+  private static buildEnhancementPrompt(jobDescription: string, resumeData: any): string {
+    return `
+JOB DESCRIPTION:
+${jobDescription}
+
+CURRENT RESUME CONTENT:
+
+Personal Summary:
+${resumeData.personalSummary || 'Not provided'}
+
+Work Experience:
+${resumeData.workExperience.map((exp: any, index: number) => 
+  `${index + 1}. ${exp.title} at ${exp.company} (${exp.duration})
+   Bullets: ${exp.bullets.join('; ')}`
+).join('\n')}
+
+Projects:
+${resumeData.projects.map((proj: any, index: number) => 
+  `${index + 1}. ${proj.name}
+   Description: ${proj.description}
+   Bullets: ${proj.bullets.join('; ')}`
+).join('\n')}
+
+ENHANCEMENT INSTRUCTIONS:
+1. Analyze the job description and identify key requirements, skills, and keywords
+2. Enhance the resume content to better match the job requirements
+3. Use stronger action verbs (Architected, Led, Optimized, Implemented, etc.)
+4. Add quantifiable results where appropriate (use % or numbers)
+5. Include relevant keywords from the job description
+6. Maintain professional tone and accuracy
+7. Keep enhancements concise and impactful
+
+RESPONSE FORMAT:
+Return a JSON object with this exact structure:
+{
+  "personalSummary": {
+    "original": "current text",
+    "enhanced": "improved text",
+    "reasoning": "why this is better"
+  },
+  "workExperience": [
+    {
+      "original": "current bullet point",
+      "enhanced": "improved bullet point", 
+      "reasoning": "improvement explanation",
+      "jobTitle": "Job Title",
+      "company": "Company Name",
+      "bulletIndex": 0
+    }
+  ],
+  "projects": [
+    {
+      "original": "current bullet point",
+      "enhanced": "improved bullet point",
+      "reasoning": "improvement explanation", 
+      "projectName": "Project Name",
+      "bulletIndex": 0
+    }
+  ]
+}
+
+Only include suggestions where there is a meaningful improvement. If a bullet point is already well-written, don't include it in the suggestions.
+`;
+  }
+
+  /**
+   * Parse AI response and convert to our suggestion format
+   */
+  private static parseAIResponse(aiResponse: string, resumeData: any): AIEnhancementResponse['suggestions'] {
+    try {
+      // Clean the response (remove markdown formatting if present)
+      const cleanResponse = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsed = JSON.parse(cleanResponse);
+
+      const suggestions: AIEnhancementResponse['suggestions'] = {
+        workExperience: [],
+        projects: []
+      };
+
+      // Parse personal summary
+      if (parsed.personalSummary && parsed.personalSummary.enhanced !== parsed.personalSummary.original) {
+        suggestions.personalSummary = {
+          id: uuidv4(),
+          type: 'personalSummary',
+          original: parsed.personalSummary.original,
+          enhanced: parsed.personalSummary.enhanced,
+          confidence: 0.85,
+          reasoning: parsed.personalSummary.reasoning || 'Enhanced with relevant keywords and improved structure',
+          applied: false
+        };
+      }
+
+      // Parse work experience
+      if (parsed.workExperience && Array.isArray(parsed.workExperience)) {
+        parsed.workExperience.forEach((suggestion: any) => {
+          suggestions.workExperience.push({
+            id: uuidv4(),
+            type: 'workExperience',
+            original: suggestion.original,
+            enhanced: suggestion.enhanced,
+            confidence: 0.80,
+            reasoning: suggestion.reasoning || 'Improved with stronger action verbs and relevant keywords',
+            applied: false,
+            jobTitle: suggestion.jobTitle || '',
+            company: suggestion.company || '',
+            bulletIndex: suggestion.bulletIndex || 0
+          });
+        });
+      }
+
+      // Parse projects
+      if (parsed.projects && Array.isArray(parsed.projects)) {
+        parsed.projects.forEach((suggestion: any) => {
+          suggestions.projects.push({
+            id: uuidv4(),
+            type: 'projects',
+            original: suggestion.original,
+            enhanced: suggestion.enhanced,
+            confidence: 0.75,
+            reasoning: suggestion.reasoning || 'Enhanced with technical details and impact metrics',
+            applied: false,
+            projectName: suggestion.projectName || '',
+            bulletIndex: suggestion.bulletIndex || 0
+          });
+        });
+      }
+
+      return suggestions;
+
+    } catch (error) {
+      console.error('❌ Error parsing AI response:', error);
+      console.log('Raw AI response:', aiResponse);
+      throw new Error('Failed to parse AI response');
+    }
+  }
+
+  /**
+   * Generate mock suggestions (fallback when OpenAI is not available)
+   */
+  private static async generateMockSuggestions(
     jobDescription: string, 
     resumeData: any
   ): Promise<AIEnhancementResponse['suggestions']> {
@@ -272,39 +496,6 @@ export class AIController {
     });
 
     return suggestions;
-  }
-
-  /**
-   * Enhance personal summary (mock implementation)
-   */
-  private static enhancePersonalSummary(original: string, jobDescription: string): string {
-    // Simple enhancement logic - in production, use AI service
-    const keywords = AIController.extractKeywords(jobDescription);
-    const enhanced = original + `\n\nKey skills: ${keywords.slice(0, 3).join(', ')}.`;
-    return enhanced;
-  }
-
-  /**
-   * Enhance bullet point (mock implementation)
-   */
-  private static enhanceBulletPoint(original: string, jobDescription: string): string {
-    // Simple enhancement logic - in production, use AI service
-    const keywords = AIController.extractKeywords(jobDescription);
-    
-    // Add some mock enhancements
-    if (original.toLowerCase().includes('developed')) {
-      return original.replace(/developed/gi, 'Architected and developed');
-    }
-    
-    if (original.toLowerCase().includes('managed')) {
-      return original.replace(/managed/gi, 'Led and managed');
-    }
-    
-    if (original.toLowerCase().includes('improved')) {
-      return original.replace(/improved/gi, 'Optimized and improved');
-    }
-    
-    return original;
   }
 
   /**
