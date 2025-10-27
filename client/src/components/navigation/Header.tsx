@@ -6,6 +6,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Button from '../ui/Button';
 import { useTheme } from '../../theme/ThemeProvider';
+import { FileText, Sun, Moon, Menu } from 'lucide-react';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -26,7 +27,7 @@ const Header: React.FC = () => {
             to="/" 
             className="flex items-center space-x-2 text-2xl font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
-            <span className="text-3xl">📄</span>
+            <FileText className="w-8 h-8" />
             <span>ResumeBuilder</span>
           </Link>
 
@@ -56,7 +57,7 @@ const Header: React.FC = () => {
               onClick={toggleTheme}
               className="hidden sm:flex"
             >
-              {isDark ? '☀️' : '🌙'}
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
 
             {/* Mobile Menu Button */}
@@ -69,7 +70,7 @@ const Header: React.FC = () => {
                 console.log('Mobile menu toggle');
               }}
             >
-              ☰
+              <Menu className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -95,9 +96,10 @@ const Header: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="w-full justify-start"
+                className="w-full justify-start flex items-center gap-2"
               >
-                {isDark ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode'}
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               </Button>
             </div>
           </nav>

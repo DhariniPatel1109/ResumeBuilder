@@ -107,19 +107,7 @@ import Card from '../components/ui/Card';
 ```
 
 ### Section Component
-```tsx
-import Section from '../components/ui/Section';
-
-// Usage
-<Section
-  title="Work Experience"
-  subtitle="Your professional background"
-  headerIcon="💼"
-  actions={<Button>Add</Button>}
->
-  Content here
-</Section>
-```
+*Note: Section component has been removed. Use Card component with proper styling for section layouts.*
 
 ## 🎯 Usage Patterns
 

@@ -4,7 +4,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useResumeData } from '../hooks/useResumeData';
-import { useAIEnhancement } from '../hooks/useAIEnhancement';
+import AIEnhancementPopup from '../components/ai/AIEnhancementPopup';
+import DynamicResumeRenderer from '../components/ai/DynamicResumeRenderer';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -45,30 +46,11 @@ const ResumeEditor: React.FC = () => {
   } = useResumeData();
 
   // AI Enhancement
-  const {
-    isEnabled: aiEnabled,
-    jobDescription,
-    isProcessing: aiProcessing,
-    suggestions,
-    error: aiError,
-    hasJobDescription,
-    canStartEnhancement,
-    hasSuggestions,
-    hasError,
-    updateJobDescription,
-    toggleAIEnhancement,
-    startEnhancement,
-    applySuggestions,
-    clearSuggestions,
-    clearError,
-  } = useAIEnhancement();
+  const [showAIPopup, setShowAIPopup] = useState(false);
 
   // UI State
   const [activeSection, setActiveSection] = useState<string>('personalSummary');
   const [showPreview, setShowPreview] = useState(false);
-  const [showAIPanel, setShowAIPanel] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [workExpViewMode, setWorkExpViewMode] = useState<'form' | 'text'>('form');
   const [projectsViewMode, setProjectsViewMode] = useState<'form' | 'text'>('form');
@@ -83,67 +65,39 @@ const ResumeEditor: React.FC = () => {
   ];
 
   // AI Enhancement handlers
-  const handleStartAIEnhancement = async () => {
-    if (!resumeData || !canStartEnhancement) return;
-
-    try {
-      await startEnhancement(resumeData);
-      setShowSuggestions(true);
-    } catch (error) {
-      console.error('❌ AI Enhancement failed:', error);
-    }
-  };
-
-  const handleApplyAISuggestions = async (suggestionIds: string[]) => {
-    if (!resumeData) return;
-
-    setIsApplyingSuggestions(true);
-    try {
-      await applySuggestions(suggestionIds);
-      
-      // Apply suggestions to local state
-      const updatedSections = { ...resumeData.sections };
-      
-      if (suggestions?.personalSummary && suggestionIds.includes(suggestions.personalSummary.id)) {
-        updatedSections.personalSummary = suggestions.personalSummary.enhanced;
+  const handleApplyAISuggestions = (suggestions: any[]) => {
+    // Apply AI suggestions to resume data
+    suggestions.forEach(suggestion => {
+      if (suggestion.type === 'personalSummary') {
+        updateSection('personalSummary', suggestion.enhanced);
+      } else if (suggestion.type === 'workExperience') {
+        // Apply work experience suggestions
+        const currentWorkExp = resumeData?.sections?.workExperience || [];
+        const updatedWorkExp = currentWorkExp.map((exp: any, index: number) => {
+          if (index === suggestion.workExperienceIndex) {
+            const updatedBullets = [...exp.bullets];
+            updatedBullets[suggestion.bulletIndex] = suggestion.enhanced;
+            return { ...exp, bullets: updatedBullets };
+          }
+          return exp;
+        });
+        updateSection('workExperience', updatedWorkExp);
+      } else if (suggestion.type === 'projects') {
+        // Apply project suggestions
+        const currentProjects = resumeData?.sections?.projects || [];
+        const updatedProjects = currentProjects.map((project: any, index: number) => {
+          if (index === suggestion.projectIndex) {
+            const updatedBullets = [...project.bullets];
+            updatedBullets[suggestion.bulletIndex] = suggestion.enhanced;
+            return { ...project, bullets: updatedBullets };
+          }
+          return project;
+        });
+        updateSection('projects', updatedProjects);
       }
-
-      suggestions?.workExperience?.forEach(suggestion => {
-        if (suggestionIds.includes(suggestion.id)) {
-          if (updatedSections.workExperience) {
-            const workExp = updatedSections.workExperience[suggestion.bulletIndex];
-            if (workExp) {
-              workExp.bullets[suggestion.bulletIndex] = suggestion.enhanced;
-            }
-          }
-        }
-      });
-
-      suggestions?.projects?.forEach(suggestion => {
-        if (suggestionIds.includes(suggestion.id)) {
-          if (updatedSections.projects) {
-            const project = updatedSections.projects[suggestion.bulletIndex];
-            if (project) {
-              project.bullets[suggestion.bulletIndex] = suggestion.enhanced;
-            }
-          }
-        }
-      });
-
-      setResumeData(prev => prev ? { ...prev, sections: updatedSections } : null);
-      setShowSuggestions(false);
-      clearSuggestions();
-    } catch (error) {
-      console.error('❌ Error applying suggestions:', error);
-    } finally {
-      setIsApplyingSuggestions(false);
-    }
+    });
   };
 
-  const handleCancelAISuggestions = () => {
-    setShowSuggestions(false);
-    clearSuggestions();
-  };
 
   // Helper functions for text area conversion
   const convertWorkExpToText = (experiences: any[]) => {
@@ -271,9 +225,9 @@ const ResumeEditor: React.FC = () => {
               {/* AI Enhancement Button */}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
                 <Button
-                  variant={aiEnabled ? "primary" : "outline"}
+                  variant="outline"
                   size="sm"
-                  onClick={() => setShowAIPanel(!showAIPanel)}
+                  onClick={() => setShowAIPopup(true)}
                   className="w-full flex items-center gap-2"
                 >
                   <Bot className="w-4 h-4" />
@@ -971,6 +925,24 @@ const ResumeEditor: React.FC = () => {
               </Card>
             </div>
 
+            {/* Dynamic Sections - AI-Detected Additional Sections */}
+            <div className="mt-6">
+              <DynamicResumeRenderer
+                sections={resumeData?.sections || {}}
+                onUpdate={(sectionKey, content) => {
+                  updateDynamicSection(sectionKey, content);
+                }}
+                onDelete={(sectionKey) => {
+                  if (resumeData) {
+                    const updatedSections = { ...resumeData.sections };
+                    delete updatedSections[sectionKey];
+                    updateSection('sections', updatedSections);
+                  }
+                }}
+                isEditing={true}
+              />
+            </div>
+
             {/* Preview Panel */}
             {showPreview && (
               <div className="w-1/2">
@@ -993,63 +965,13 @@ const ResumeEditor: React.FC = () => {
         </div>
       </div>
 
-      {/* AI Panel Overlay */}
-      {showAIPanel && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card variant="elevated" padding="lg" className="w-full max-w-4xl max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <Bot className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  AI Resume Enhancement
-                </h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAIPanel(false)}
-                className="p-2"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Job Description (Optional)
-                </label>
-                <textarea
-                  value={jobDescription}
-                  onChange={(e) => updateJobDescription(e.target.value)}
-                  className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white resize-none"
-                  rows={4}
-                  placeholder="Paste the job description here for AI-powered enhancements..."
-                />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="primary"
-                  onClick={handleStartAIEnhancement}
-                  disabled={!canStartEnhancement || aiProcessing}
-                  loading={aiProcessing}
-                  className="flex items-center gap-2"
-                >
-                  {aiProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
-                  {aiProcessing ? 'Processing...' : 'Enhance Resume'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAIPanel(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+      {/* AI Enhancement Popup */}
+      <AIEnhancementPopup
+        isOpen={showAIPopup}
+        onClose={() => setShowAIPopup(false)}
+        resumeData={resumeData}
+        onApplySuggestions={handleApplyAISuggestions}
+      />
     </PageLayout>
   );
 };
