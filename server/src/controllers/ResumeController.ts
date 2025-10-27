@@ -7,6 +7,7 @@ import { DocumentParser } from '../services/DocumentParser';
 import { VersionManager } from '../services/VersionManager';
 import { ExportService } from '../services/ExportService';
 import { ApiResponse } from '../types';
+import { logger } from '../services/Logger';
 
 export class ResumeController {
   private static upload = multer({
@@ -25,30 +26,42 @@ export class ResumeController {
    */
   static async uploadResume(req: Request, res: Response): Promise<void> {
     try {
-      console.log('📤 POST /api/upload - File upload received');
+      logger.apiRequest('POST', '/api/upload', { 
+        fileName: req.file?.originalname,
+        fileSize: req.file?.size 
+      });
       
       if (!req.file) {
-        console.log('❌ No file uploaded');
+        logger.warn('No file uploaded in request', {}, 'ResumeController');
         res.status(400).json({ success: false, error: 'No file uploaded' });
         return;
       }
 
-      console.log(`📄 Processing file: ${req.file.originalname} (${req.file.size} bytes)`);
       const filePath = req.file.path;
       const fileExtension = path.extname(req.file.originalname).toLowerCase();
       
+      logger.info('Processing uploaded file', {
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        fileExtension,
+        filePath
+      }, 'ResumeController');
+      
       const parsedData = await DocumentParser.parseResume(filePath, fileExtension);
       
-      // Debug logging
-      console.log('📊 Parsed text length:', parsedData.text.length);
-      console.log('📊 Detected sections:', {
-        personalSummary: parsedData.sections.personalSummary.length,
-        workExperience: parsedData.sections.workExperience.length,
-        projects: parsedData.sections.projects.length
-      });
+      logger.info('Resume parsing completed', {
+        textLength: parsedData.text.length,
+        sections: {
+          personalSummary: parsedData.sections.personalSummary.length,
+          workExperience: parsedData.sections.workExperience.length,
+          projects: parsedData.sections.projects.length,
+          dynamicSections: Object.keys(parsedData.sections.dynamicSections || {}).length
+        }
+      }, 'ResumeController');
       
       // Clean up uploaded file
       await fs.remove(filePath);
+      logger.debug('Uploaded file cleaned up', { filePath }, 'ResumeController');
 
       const response: ApiResponse = {
         success: true,
@@ -58,10 +71,16 @@ export class ResumeController {
         }
       };
 
+      logger.apiResponse('POST', '/api/upload', 200, { 
+        sectionsCount: Object.keys(parsedData.sections.dynamicSections || {}).length 
+      });
       res.json(response);
 
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload processing failed', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        fileName: req.file?.originalname 
+      }, 'ResumeController');
       const response: ApiResponse = {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'

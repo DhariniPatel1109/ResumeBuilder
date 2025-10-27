@@ -74,13 +74,13 @@ export const config = {
 
 // Environment-specific overrides
 if (config.server.nodeEnv === 'production') {
-  config.cors.origin = process.env.CLIENT_URL || 'https://your-production-domain.com';
-  config.logging.enableConsole = false;
+  (config.cors as any).origin = process.env.CLIENT_URL || 'https://your-production-domain.com';
+  (config.logging as any).enableConsole = false;
 }
 
 if (config.server.nodeEnv === 'test') {
-  config.server.port = 0; // Use random port for tests
-  config.rateLimit.max = 1000; // Higher limit for tests
+  (config.server as any).port = 0; // Use random port for tests
+  (config.rateLimit as any).max = 1000; // Higher limit for tests
 }
 
 export default config;

@@ -8,10 +8,6 @@ export const env = {
   // Client Configuration
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
 
-  // Logging
-  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
-  ENABLE_CONSOLE: process.env.ENABLE_CONSOLE !== 'false',
-
   // File Upload
   MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB
   UPLOAD_DIR: process.env.UPLOAD_DIR || 'uploads',
@@ -27,6 +23,10 @@ export const env = {
 
   // AI Configuration
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  
+  // Logging Configuration
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+  ENABLE_CONSOLE: process.env.ENABLE_CONSOLE !== 'false',
 
   // Development
   IS_DEVELOPMENT: process.env.NODE_ENV === 'development',

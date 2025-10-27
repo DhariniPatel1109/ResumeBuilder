@@ -3,6 +3,7 @@ import pdfParse from 'pdf-parse';
 import fs from 'fs-extra';
 import { ParsedResume, ResumeSection, WorkExperience, Project, DynamicSection } from '../types';
 import { API_CONSTANTS } from '../config/constants';
+import { logger } from './Logger';
 
 export class DocumentParser {
   /**
@@ -10,9 +11,18 @@ export class DocumentParser {
    */
   static async parseWordDocument(filePath: string): Promise<string> {
     try {
+      logger.fileOperation('Parsing Word document', filePath);
       const result = await mammoth.extractRawText({ path: filePath });
+      logger.debug('Word document parsed successfully', { 
+        filePath, 
+        textLength: result.value.length 
+      }, 'DocumentParser');
       return result.value;
     } catch (error) {
+      logger.error('Failed to parse Word document', { 
+        filePath, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }, 'DocumentParser');
       throw new Error(`Error parsing Word document: ${error}`);
     }
   }
@@ -22,10 +32,19 @@ export class DocumentParser {
    */
   static async parsePDF(filePath: string): Promise<string> {
     try {
+      logger.fileOperation('Parsing PDF document', filePath);
       const dataBuffer = fs.readFileSync(filePath);
       const data = await pdfParse(dataBuffer);
+      logger.debug('PDF document parsed successfully', { 
+        filePath, 
+        textLength: data.text.length 
+      }, 'DocumentParser');
       return data.text;
     } catch (error) {
+      logger.error('Failed to parse PDF document', { 
+        filePath, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }, 'DocumentParser');
       throw new Error(`Error parsing PDF: ${error}`);
     }
   }
@@ -49,7 +68,10 @@ export class DocumentParser {
   static detectSections(text: string): ResumeSection {
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
-    console.log('🔍 Starting dynamic section detection with', lines.length, 'lines');
+    logger.parsingStep('Starting dynamic section detection', { 
+      totalLines: lines.length,
+      textLength: text.length 
+    });
 
     // Detect all sections dynamically
     const detectedSections = this.detectAllSections(lines);
@@ -76,12 +98,13 @@ export class DocumentParser {
       sections.projects = detectedSections.projects.content;
     }
 
-    console.log('📊 Dynamic Parsing Results:');
-    console.log('- Total sections detected:', Object.keys(detectedSections).length);
-    console.log('- Section names:', Object.keys(detectedSections));
-    console.log('- Personal Summary length:', sections.personalSummary.length);
-    console.log('- Work Experience entries:', sections.workExperience.length);
-    console.log('- Projects entries:', sections.projects.length);
+    logger.info('Dynamic parsing completed', {
+      totalSections: Object.keys(detectedSections).length,
+      sectionNames: Object.keys(detectedSections),
+      personalSummaryLength: sections.personalSummary.length,
+      workExperienceEntries: sections.workExperience.length,
+      projectsEntries: sections.projects.length
+    }, 'DocumentParser');
 
     return sections;
   }
@@ -96,6 +119,8 @@ export class DocumentParser {
     let currentExperience: WorkExperience | null = null;
     let currentProject: Project | null = null;
 
+    logger.parsingStep('Starting section detection loop', { totalLines: lines.length });
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const cleanLine = this.cleanMarkdown(line);
@@ -107,6 +132,11 @@ export class DocumentParser {
         // Save previous section
         if (currentSectionName && currentSectionContent !== null) {
           sections[currentSectionName] = currentSectionContent;
+          logger.sectionDetection(currentSectionName, currentSectionContent.type, {
+            contentLength: Array.isArray(currentSectionContent.content) 
+              ? currentSectionContent.content.length 
+              : currentSectionContent.content.length
+          });
         }
 
         // Start new section
@@ -117,7 +147,12 @@ export class DocumentParser {
           originalHeader: line
         };
 
-        console.log(`✅ Detected section: ${currentSectionName} (${sectionInfo.type})`);
+        logger.debug(`Section header detected`, {
+          lineNumber: i + 1,
+          sectionName: currentSectionName,
+          sectionType: sectionInfo.type,
+          originalHeader: line
+        }, 'DocumentParser');
         continue;
       }
 
@@ -137,23 +172,34 @@ export class DocumentParser {
         if (line && !line.startsWith('![') && !line.startsWith('**') && !line.includes('@')) {
           currentSectionContent.content += line + '\n';
         }
-      } else if (currentSectionContent && currentSectionContent.type === 'experience') {
-        // Experience-based sections (Work Experience, Professional Experience, etc.)
-        if (this.isCompanyName(line)) {
-          if (currentExperience) {
-            currentSectionContent.content.push(currentExperience);
-          }
-          
-          const companyMatch = line.match(/\*\*(.*?)\*\*/);
-          const durationMatch = line.match(/(\w+\s+\d{4}\s*[-–]\s*(?:\w+\s+\d{4}|Present|Current))/i);
-          
-          currentExperience = {
-            title: '',
-            company: companyMatch ? companyMatch[1] : this.cleanMarkdown(line),
-            duration: durationMatch ? durationMatch[1] : '',
-            bullets: []
-          };
-        } else if (currentExperience) {
+        } else if (currentSectionContent && currentSectionContent.type === 'experience') {
+          // Experience-based sections (Work Experience, Professional Experience, etc.)
+          if (this.isCompanyName(line)) {
+            if (currentExperience) {
+              currentSectionContent.content.push(currentExperience);
+              logger.debug('Experience entry completed', {
+                company: currentExperience.company,
+                title: currentExperience.title,
+                bulletsCount: currentExperience.bullets.length
+              }, 'DocumentParser');
+            }
+            
+            const companyMatch = line.match(/\*\*(.*?)\*\*/);
+            const durationMatch = line.match(/(\w+\s+\d{4}\s*[-–]\s*(?:\w+\s+\d{4}|Present|Current))/i);
+            
+            currentExperience = {
+              title: '',
+              company: companyMatch ? companyMatch[1] : this.cleanMarkdown(line),
+              duration: durationMatch ? durationMatch[1] : '',
+              bullets: []
+            };
+
+            logger.debug('New experience entry started', {
+              lineNumber: i + 1,
+              company: currentExperience.company,
+              duration: currentExperience.duration
+            }, 'DocumentParser');
+          } else if (currentExperience) {
           if (this.isJobTitle(line)) {
             // Extract job title and duration from the same line if present
             const durationMatch = line.match(/(\w+\s+\d{4}\s*[-–]\s*(?:\w+\s+\d{4}|Present|Current))/i);
@@ -165,10 +211,15 @@ export class DocumentParser {
             }
           } else if (this.isDuration(line)) {
             currentExperience.duration = line;
-          } else if (this.isBulletPoint(line)) {
-            const bullet = this.cleanBulletPoint(line);
-            currentExperience.bullets.push(bullet);
-          }
+            } else if (this.isBulletPoint(line)) {
+              const bullet = this.cleanBulletPoint(line);
+              currentExperience.bullets.push(bullet);
+              logger.debug('Bullet point added to experience', {
+                lineNumber: i + 1,
+                company: currentExperience.company,
+                bullet: bullet.substring(0, 100) + (bullet.length > 100 ? '...' : '')
+              }, 'DocumentParser');
+            }
         } else if (this.isCompanyName(line)) {
           // Start new experience entry when we encounter a company name
           if (currentExperience) {
@@ -506,8 +557,8 @@ export class DocumentParser {
              // All caps job titles
              cleanLine === cleanLine.toUpperCase() ||
              // Title case patterns
-             cleanLine.match(/^[A-Z][a-zA-Z\s&]+$/) || 
-             cleanLine.match(/^[A-Z][a-zA-Z\s&]+[A-Z][a-zA-Z\s&]*$/)
+             !!cleanLine.match(/^[A-Z][a-zA-Z\s&]+$/) || 
+             !!cleanLine.match(/^[A-Z][a-zA-Z\s&]+[A-Z][a-zA-Z\s&]*$/)
            );
   }
 

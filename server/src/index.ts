@@ -2,26 +2,34 @@ import 'dotenv/config';
 import app from './app';
 import { config } from './config';
 import { env } from './config/env';
+import { logger } from './services/Logger';
 
-const server = app.listen(config.server.port, config.server.host, () => {
-  console.log(`🚀 ResumeBuilder Server running on ${config.server.host}:${config.server.port}`);
-  console.log(`📊 Health check: http://${config.server.host}:${config.server.port}/health`);
-  console.log(`📄 API docs: http://${config.server.host}:${config.server.port}/api`);
-  console.log(`🌍 Environment: ${config.server.nodeEnv}`);
-  console.log(`🔗 CORS Origin: ${config.cors.origin}`);
+const server = app.listen(Number(config.server.port), config.server.host, () => {
+  logger.info('ResumeBuilder Server started', {
+    host: config.server.host,
+    port: config.server.port,
+    environment: config.server.nodeEnv,
+    corsOrigin: config.cors.origin,
+    logLevel: env.LOG_LEVEL
+  }, 'Server');
+  
+  logger.info('Server endpoints', {
+    healthCheck: `http://${config.server.host}:${config.server.port}/health`,
+    apiDocs: `http://${config.server.host}:${config.server.port}/api`
+  }, 'Server');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  logger.info('SIGTERM received, shutting down gracefully', {}, 'Server');
   server.close(() => {
-    console.log('Process terminated');
+    logger.info('Process terminated', {}, 'Server');
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+  logger.info('SIGINT received, shutting down gracefully', {}, 'Server');
   server.close(() => {
-    console.log('Process terminated');
+    logger.info('Process terminated', {}, 'Server');
   });
 });
