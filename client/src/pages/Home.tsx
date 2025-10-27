@@ -9,16 +9,15 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import FileUpload from '../components/forms/FileUpload';
 import { 
-  Target, 
-  FileText, 
-  Zap, 
-  Upload, 
-  Bot, 
-  Edit3, 
-  Download, 
+  Target,
+  FileText,
+  Zap,
+  Upload,
+  Bot,
+  Edit3,
+  Download,
   ArrowRight,
   Sparkles,
-  CheckCircle,
   ArrowDown
 } from 'lucide-react';
 

@@ -31,10 +31,11 @@ export const useAIEnhancement = () => {
   }, []);
 
   const startEnhancement = useCallback(async (resumeData: any) => {
-    if (!state.jobDescription.trim()) {
+    const validation = aiService.validateJobDescription(state.jobDescription);
+    if (!validation.isValid) {
       setState(prev => ({
         ...prev,
-        error: 'Job description is required for AI enhancement',
+        error: validation.error || 'Job description is required for AI enhancement',
       }));
       return;
     }
@@ -48,7 +49,11 @@ export const useAIEnhancement = () => {
     try {
       const request: AIEnhancementRequest = {
         jobDescription: state.jobDescription,
-        resumeData,
+        resumeData: {
+          personalSummary: resumeData.sections?.personalSummary || '',
+          workExperience: resumeData.sections?.workExperience || [],
+          projects: resumeData.sections?.projects || []
+        },
       };
 
       const response: AIEnhancementResponse = await aiService.enhanceResume(request);
@@ -141,7 +146,7 @@ export const useAIEnhancement = () => {
     
     // Computed values
     hasJobDescription: state.jobDescription.trim().length > 0,
-    canStartEnhancement: state.isEnabled && state.jobDescription.trim().length > 0 && !state.isProcessing,
+    canStartEnhancement: aiService.validateJobDescription(state.jobDescription).isValid && !state.isProcessing,
     hasSuggestions: state.suggestions !== null,
     hasError: state.error !== null,
   };

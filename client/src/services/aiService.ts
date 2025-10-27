@@ -85,10 +85,6 @@ class AIService {
       return { isValid: false, error: 'Job description cannot be empty' };
     }
 
-    if (jobDescription.length < 50) {
-      return { isValid: false, error: 'Job description should be at least 50 characters' };
-    }
-
     if (jobDescription.length > 2000) {
       return { isValid: false, error: 'Job description should be less than 2000 characters' };
     }

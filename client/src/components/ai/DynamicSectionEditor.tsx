@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { DynamicSection } from '../../types';
-import { Edit3, Save, X, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
+import { Edit3, Save, X, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import Button from '../ui/Button';
-import Input from '../ui/Input';
 import Card from '../ui/Card';
 
 interface DynamicSectionEditorProps {

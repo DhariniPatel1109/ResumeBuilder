@@ -300,17 +300,21 @@ Personal Summary:
 ${resumeData.personalSummary || 'Not provided'}
 
 Work Experience:
-${resumeData.workExperience.map((exp: any, index: number) => 
-  `${index + 1}. ${exp.title} at ${exp.company} (${exp.duration})
-   Bullets: ${exp.bullets.join('; ')}`
-).join('\n')}
+${resumeData.workExperience && resumeData.workExperience.length > 0 
+  ? resumeData.workExperience.map((exp: any, index: number) => 
+      `${index + 1}. ${exp.title} at ${exp.company} (${exp.duration})
+       Bullets: ${exp.bullets ? exp.bullets.join('; ') : 'None'}`
+    ).join('\n')
+  : 'No work experience provided'}
 
 Projects:
-${resumeData.projects.map((proj: any, index: number) => 
-  `${index + 1}. ${proj.name}
-   Description: ${proj.description}
-   Bullets: ${proj.bullets.join('; ')}`
-).join('\n')}
+${resumeData.projects && resumeData.projects.length > 0 
+  ? resumeData.projects.map((proj: any, index: number) => 
+      `${index + 1}. ${proj.name}
+       Description: ${proj.description}
+       Bullets: ${proj.bullets ? proj.bullets.join('; ') : 'None'}`
+    ).join('\n')
+  : 'No projects provided'}
 
 ENHANCEMENT INSTRUCTIONS:
 1. Analyze the job description and identify key requirements, skills, and keywords
@@ -455,45 +459,53 @@ Only include suggestions where there is a meaningful improvement. If a bullet po
     }
 
     // Generate work experience suggestions
-    resumeData.workExperience.forEach((workExp: any, workIndex: number) => {
-      workExp.bullets.forEach((bullet: string, bulletIndex: number) => {
-        const enhanced = AIController.enhanceBulletPoint(bullet, jobDescription);
-        if (enhanced !== bullet) {
-          suggestions.workExperience.push({
-            id: uuidv4(),
-            type: 'workExperience',
-            original: bullet,
-            enhanced,
-            confidence: 0.75,
-            reasoning: 'Improved with stronger action verbs and relevant keywords',
-            applied: false,
-            jobTitle: workExp.title,
-            company: workExp.company,
-            bulletIndex
+    if (resumeData.workExperience && resumeData.workExperience.length > 0) {
+      resumeData.workExperience.forEach((workExp: any, workIndex: number) => {
+        if (workExp.bullets && workExp.bullets.length > 0) {
+          workExp.bullets.forEach((bullet: string, bulletIndex: number) => {
+            const enhanced = AIController.enhanceBulletPoint(bullet, jobDescription);
+            if (enhanced !== bullet) {
+              suggestions.workExperience.push({
+                id: uuidv4(),
+                type: 'workExperience',
+                original: bullet,
+                enhanced,
+                confidence: 0.75,
+                reasoning: 'Improved with stronger action verbs and relevant keywords',
+                applied: false,
+                jobTitle: workExp.title,
+                company: workExp.company,
+                bulletIndex
+              });
+            }
           });
         }
       });
-    });
+    }
 
     // Generate project suggestions
-    resumeData.projects.forEach((project: any, projectIndex: number) => {
-      project.bullets.forEach((bullet: string, bulletIndex: number) => {
-        const enhanced = AIController.enhanceBulletPoint(bullet, jobDescription);
-        if (enhanced !== bullet) {
-          suggestions.projects.push({
-            id: uuidv4(),
-            type: 'projects',
-            original: bullet,
-            enhanced,
-            confidence: 0.70,
-            reasoning: 'Enhanced with technical details and impact metrics',
-            applied: false,
-            projectName: project.name,
-            bulletIndex
+    if (resumeData.projects && resumeData.projects.length > 0) {
+      resumeData.projects.forEach((project: any, projectIndex: number) => {
+        if (project.bullets && project.bullets.length > 0) {
+          project.bullets.forEach((bullet: string, bulletIndex: number) => {
+            const enhanced = AIController.enhanceBulletPoint(bullet, jobDescription);
+            if (enhanced !== bullet) {
+              suggestions.projects.push({
+                id: uuidv4(),
+                type: 'projects',
+                original: bullet,
+                enhanced,
+                confidence: 0.70,
+                reasoning: 'Enhanced with technical details and impact metrics',
+                applied: false,
+                projectName: project.name,
+                bulletIndex
+              });
+            }
           });
         }
       });
-    });
+    }
 
     return suggestions;
   }

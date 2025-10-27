@@ -70,9 +70,9 @@ export class ResumeController {
       logger.info('Resume parsing completed', {
         textLength: parsedData.text.length,
         sections: {
-          personalSummary: parsedData.sections.personalSummary.length,
-          workExperience: parsedData.sections.workExperience.length,
-          projects: parsedData.sections.projects.length,
+          personalSummary: parsedData.sections.personalSummary?.length || 0,
+          workExperience: parsedData.sections.workExperience?.length || 0,
+          projects: parsedData.sections.projects?.length || 0,
           dynamicSections: Object.keys(parsedData.sections.dynamicSections || {}).length
         }
       }, 'ResumeController');

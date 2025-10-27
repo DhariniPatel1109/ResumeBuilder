@@ -10,23 +10,18 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { VersionService, ExportService, Version } from '../services';
 import { 
-  Search, 
-  Grid3X3, 
-  List, 
-  FileText, 
-  FileDown, 
-  Edit3, 
-  Trash2, 
-  Upload, 
-  Plus, 
-  AlertTriangle, 
+  Search,
+  Grid3X3,
+  List,
+  FileText,
+  FileDown,
+  Edit3,
+  Trash2,
+  Upload,
+  AlertTriangle,
   RefreshCw,
   Target,
-  Zap,
   Download,
-  Clock,
-  Building2,
-  Briefcase,
   Sparkles
 } from 'lucide-react';
 

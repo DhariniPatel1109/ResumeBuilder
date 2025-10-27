@@ -27,7 +27,6 @@ import {
   Trash2, 
   Bot, 
   Lightbulb, 
-  X,
   Loader2
 } from 'lucide-react';
 
@@ -35,7 +34,6 @@ const ResumeEditor: React.FC = () => {
   // Resume data management
   const {
     resumeData,
-    setResumeData,
     companyName,
     setCompanyName,
     isSaving,
@@ -234,6 +232,7 @@ const ResumeEditor: React.FC = () => {
                   {!sidebarCollapsed && "AI Enhance"}
                 </Button>
               </div>
+
             </div>
           </Card>
         </div>
@@ -969,9 +968,10 @@ const ResumeEditor: React.FC = () => {
       <AIEnhancementPopup
         isOpen={showAIPopup}
         onClose={() => setShowAIPopup(false)}
-        resumeData={resumeData}
-        onApplySuggestions={handleApplyAISuggestions}
-      />
+          resumeData={resumeData}
+          onApplySuggestions={handleApplyAISuggestions}
+        />
+
     </PageLayout>
   );
 };

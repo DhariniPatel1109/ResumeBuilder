@@ -8,8 +8,8 @@ import { useAIEnhancement } from '../../hooks/useAIEnhancement';
 import { ResumeData } from '../../types';
 import { AISuggestion } from '../../types/ai';
 import Card from '../ui/Card';
+import DiffView from './DiffView';
 import Button from '../ui/Button';
-import Input from '../ui/Input';
 import { 
   Bot, 
   X, 
@@ -25,7 +25,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  Copy,
+  Lightbulb,
   RefreshCw
 } from 'lucide-react';
 
@@ -47,7 +47,6 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
     isProcessing,
     suggestions,
     error,
-    hasJobDescription,
     canStartEnhancement,
     hasSuggestions,
     hasError,
@@ -173,7 +172,11 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
   const handleSuggestionAction = (suggestionId: string, action: 'accept' | 'reject' | 'edit') => {
     switch (action) {
       case 'accept':
-        setSelectedSuggestions(prev => new Set([...prev, suggestionId]));
+        setSelectedSuggestions(prev => {
+          const newSet = new Set(prev);
+          newSet.add(suggestionId);
+          return newSet;
+        });
         break;
       case 'reject':
         setSelectedSuggestions(prev => {
@@ -249,14 +252,6 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
     }
   };
 
-  const getSectionTitle = (type: string) => {
-    switch (type) {
-      case 'personalSummary': return 'Personal Summary';
-      case 'workExperience': return 'Work Experience';
-      case 'projects': return 'Projects';
-      default: return 'Section';
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -294,9 +289,14 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Job Description
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Job Description
+                    </label>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {jobDescription.length}/2000 characters
+                    </div>
+                  </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     Paste the job description to get targeted AI suggestions for your resume
                   </p>
@@ -307,6 +307,14 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
                     className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white resize-none"
                     rows={6}
                   />
+                  {jobDescription.length >= 2000 && (
+                    <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mt-3">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      <p className="text-sm text-red-800 dark:text-red-200">
+                        Job description is too long (maximum 2000 characters)
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {hasError && (
@@ -444,68 +452,54 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
                             </div>
                           )}
 
-                          {/* Side-by-side comparison */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="border border-gray-200 dark:border-gray-600 rounded-lg">
-                              <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 border-b border-gray-200 dark:border-gray-600 rounded-t-lg">
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Original</span>
-                              </div>
-                              <div className="p-3">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                                  {showFullText.get(suggestions.personalSummary.id) 
-                                    ? suggestions.personalSummary.original 
-                                    : truncateText(suggestions.personalSummary.original)
+                          {/* Enhanced Side-by-Side Diff View */}
+                          <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                            {editingSuggestion === suggestions.personalSummary?.id ? (
+                              <textarea
+                                value={editedSuggestions.get(suggestions.personalSummary?.id || '') || suggestions.personalSummary?.enhanced || ''}
+                                onChange={(e) => setEditedSuggestions(prev => {
+                                  const newMap = new Map(prev);
+                                  if (suggestions.personalSummary) {
+                                    newMap.set(suggestions.personalSummary.id, e.target.value);
                                   }
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="border border-gray-200 dark:border-gray-600 rounded-lg">
-                              <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 border-b border-gray-200 dark:border-gray-600 rounded-t-lg">
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Enhanced</span>
-                              </div>
-                              <div className="p-3">
-                                {editingSuggestion === suggestions.personalSummary.id ? (
-                                  <textarea
-                                    value={editedSuggestions.get(suggestions.personalSummary.id) || suggestions.personalSummary.enhanced}
-                                    onChange={(e) => setEditedSuggestions(prev => {
-                                      const newMap = new Map(prev);
-                                      newMap.set(suggestions.personalSummary.id, e.target.value);
-                                      return newMap;
-                                    })}
-                                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white resize-none"
-                                    rows={4}
-                                  />
-                                ) : (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                                    {showFullText.get(suggestions.personalSummary.id) 
-                                      ? (editedSuggestions.get(suggestions.personalSummary.id) || suggestions.personalSummary.enhanced)
-                                      : truncateText(editedSuggestions.get(suggestions.personalSummary.id) || suggestions.personalSummary.enhanced)
-                                    }
-                                  </p>
-                                )}
-                              </div>
-                            </div>
+                                  return newMap;
+                                })}
+                                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white resize-none"
+                                rows={6}
+                              />
+                            ) : (
+                              <DiffView
+                                original={showFullText.get(suggestions.personalSummary.id) 
+                                  ? suggestions.personalSummary.original 
+                                  : truncateText(suggestions.personalSummary.original)
+                                }
+                                enhanced={showFullText.get(suggestions.personalSummary.id) 
+                                  ? (editedSuggestions.get(suggestions.personalSummary.id) || suggestions.personalSummary.enhanced)
+                                  : truncateText(editedSuggestions.get(suggestions.personalSummary.id) || suggestions.personalSummary.enhanced)
+                                }
+                                className="min-h-[120px]"
+                              />
+                            )}
                           </div>
 
                           {/* Show More/Less */}
-                          {(suggestions.personalSummary.original.length > 200 || suggestions.personalSummary.enhanced.length > 200) && (
+                          {suggestions.personalSummary && (suggestions.personalSummary.original.length > 200 || suggestions.personalSummary.enhanced.length > 200) && (
                             <button
-                              onClick={() => toggleFullText(suggestions.personalSummary.id)}
+                              onClick={() => toggleFullText(suggestions.personalSummary?.id || '')}
                               className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
                             >
-                              {showFullText.get(suggestions.personalSummary.id) ? 'Show Less' : 'Show More'}
+                              {showFullText.get(suggestions.personalSummary?.id || '') ? 'Show Less' : 'Show More'}
                             </button>
                           )}
 
                           {/* Action Buttons */}
                           <div className="flex flex-wrap gap-2">
-                            {editingSuggestion === suggestions.personalSummary.id ? (
+                            {editingSuggestion === suggestions.personalSummary?.id ? (
                               <>
                                 <Button
                                   variant="primary"
                                   size="sm"
-                                  onClick={() => handleSuggestionEdit(suggestions.personalSummary.id, editedSuggestions.get(suggestions.personalSummary.id) || suggestions.personalSummary.enhanced)}
+                                  onClick={() => handleSuggestionEdit(suggestions.personalSummary?.id || '', editedSuggestions.get(suggestions.personalSummary?.id || '') || suggestions.personalSummary?.enhanced || '')}
                                   className="flex items-center gap-2"
                                 >
                                   <CheckCircle className="w-4 h-4" />
@@ -518,7 +512,9 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
                                     setEditingSuggestion(null);
                                     setEditedSuggestions(prev => {
                                       const newMap = new Map(prev);
-                                      newMap.delete(suggestions.personalSummary.id);
+                                      if (suggestions.personalSummary) {
+                                        newMap.delete(suggestions.personalSummary.id);
+                                      }
                                       return newMap;
                                     });
                                   }}
@@ -531,22 +527,22 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
                             ) : (
                               <>
                                 <Button
-                                  variant={selectedSuggestions.has(suggestions.personalSummary.id) ? "primary" : "outline"}
+                                  variant={selectedSuggestions.has(suggestions.personalSummary?.id || '') ? "primary" : "outline"}
                                   size="sm"
-                                  onClick={() => handleSuggestionAction(suggestions.personalSummary.id, selectedSuggestions.has(suggestions.personalSummary.id) ? 'reject' : 'accept')}
+                                  onClick={() => handleSuggestionAction(suggestions.personalSummary?.id || '', selectedSuggestions.has(suggestions.personalSummary?.id || '') ? 'reject' : 'accept')}
                                   className="flex items-center gap-2"
                                 >
-                                  {selectedSuggestions.has(suggestions.personalSummary.id) ? (
+                                  {selectedSuggestions.has(suggestions.personalSummary?.id || '') ? (
                                     <XCircle className="w-4 h-4" />
                                   ) : (
                                     <CheckCircle className="w-4 h-4" />
                                   )}
-                                  {selectedSuggestions.has(suggestions.personalSummary.id) ? 'Reject' : 'Accept'}
+                                  {selectedSuggestions.has(suggestions.personalSummary?.id || '') ? 'Reject' : 'Accept'}
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleSuggestionAction(suggestions.personalSummary.id, 'edit')}
+                                  onClick={() => handleSuggestionAction(suggestions.personalSummary?.id || '', 'edit')}
                                   className="flex items-center gap-2"
                                 >
                                   <Edit3 className="w-4 h-4" />
@@ -609,18 +605,11 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
                               </Button>
                             </div>
                             <div className="space-y-3">
-                              <div>
-                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Original:</h5>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                                  {suggestion.original}
-                                </p>
-                              </div>
-                              <div>
-                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Enhanced:</h5>
-                                <p className="text-sm text-gray-900 dark:text-white bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                                  {suggestion.enhanced}
-                                </p>
-                              </div>
+                              <DiffView
+                                original={suggestion.original}
+                                enhanced={suggestion.enhanced}
+                                className="min-h-[80px]"
+                              />
                             </div>
                           </div>
                         ))}
@@ -677,18 +666,11 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
                               </Button>
                             </div>
                             <div className="space-y-3">
-                              <div>
-                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Original:</h5>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                                  {suggestion.original}
-                                </p>
-                              </div>
-                              <div>
-                                <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Enhanced:</h5>
-                                <p className="text-sm text-gray-900 dark:text-white bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                                  {suggestion.enhanced}
-                                </p>
-                              </div>
+                              <DiffView
+                                original={suggestion.original}
+                                enhanced={suggestion.enhanced}
+                                className="min-h-[80px]"
+                              />
                             </div>
                           </div>
                         ))}
