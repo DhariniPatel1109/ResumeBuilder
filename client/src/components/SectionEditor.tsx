@@ -10,6 +10,8 @@ interface SectionEditorProps {
 
 const SectionEditor: React.FC<SectionEditorProps> = ({ title, content, onUpdate, type }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isBulkEditing, setIsBulkEditing] = useState(false);
+  const [bulkEditContent, setBulkEditContent] = useState('');
 
   const handleTextChange = (newText: string) => {
     onUpdate(newText);
@@ -69,27 +71,160 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ title, content, onUpdate,
     onUpdate(updatedContent);
   };
 
+  const handleBulkEdit = () => {
+    if (type === 'experience') {
+      // Format experience entries for easy editing
+      const formattedContent = Array.isArray(content) 
+        ? content.map((exp: any) => {
+            const bullets = exp.bullets ? exp.bullets.join('\n') : '';
+            return `[${exp.company || 'Company'}] ${exp.title || 'Title'} (${exp.duration || 'Duration'})\n${bullets}`;
+          }).join('\n\n')
+        : '';
+      setBulkEditContent(formattedContent);
+    } else if (type === 'projects') {
+      // Format project entries for easy editing
+      const formattedContent = Array.isArray(content) 
+        ? content.map((project: any) => {
+            const bullets = project.bullets ? project.bullets.join('\n') : '';
+            return `[${project.name || 'Project Name'}] ${project.description || 'Description'}\n${bullets}`;
+          }).join('\n\n')
+        : '';
+      setBulkEditContent(formattedContent);
+    }
+    setIsBulkEditing(true);
+  };
+
+  const handleBulkSave = () => {
+    if (type === 'experience') {
+      // Parse simple format: [Company] Title (Duration) followed by bullets
+      try {
+        const entries = bulkEditContent.split('\n\n').filter(entry => entry.trim());
+        const parsedEntries = entries.map(entry => {
+          const lines = entry.split('\n');
+          const headerLine = lines[0];
+          const bullets = lines.slice(1).filter(line => line.trim());
+          
+          // Parse header: [Company] Title (Duration)
+          const companyMatch = headerLine.match(/^\[([^\]]+)\]/);
+          const titleMatch = headerLine.match(/\]\s*([^(]+)/);
+          const durationMatch = headerLine.match(/\(([^)]+)\)/);
+          
+          return {
+            company: companyMatch ? companyMatch[1].trim() : '',
+            title: titleMatch ? titleMatch[1].trim() : '',
+            duration: durationMatch ? durationMatch[1].trim() : '',
+            bullets: bullets
+          };
+        });
+        onUpdate(parsedEntries);
+      } catch (error) {
+        console.error('Error parsing experience content:', error);
+        alert('Invalid format. Please check your input.');
+        return;
+      }
+    } else if (type === 'projects') {
+      // Parse simple format: [Project Name] Description followed by bullets
+      try {
+        const entries = bulkEditContent.split('\n\n').filter(entry => entry.trim());
+        const parsedEntries = entries.map(entry => {
+          const lines = entry.split('\n');
+          const headerLine = lines[0];
+          const bullets = lines.slice(1).filter(line => line.trim());
+          
+          // Parse header: [Project Name] Description
+          const nameMatch = headerLine.match(/^\[([^\]]+)\]/);
+          const descriptionMatch = headerLine.match(/\]\s*(.+)/);
+          
+          return {
+            name: nameMatch ? nameMatch[1].trim() : '',
+            description: descriptionMatch ? descriptionMatch[1].trim() : '',
+            bullets: bullets
+          };
+        });
+        onUpdate(parsedEntries);
+      } catch (error) {
+        console.error('Error parsing project content:', error);
+        alert('Invalid format. Please check your input.');
+        return;
+      }
+    }
+    setIsBulkEditing(false);
+  };
+
+  const handleBulkCancel = () => {
+    setIsBulkEditing(false);
+    setBulkEditContent('');
+  };
+
   return (
     <div className="section-editor">
-      <div className="section-header" onClick={() => setIsExpanded(!isExpanded)}>
-        <h2>{title}</h2>
-        <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>▼</span>
+      <div className="section-header">
+        <h2 onClick={() => setIsExpanded(!isExpanded)}>{title}</h2>
+        <div className="section-actions">
+          {(type === 'experience' || type === 'projects') && !isBulkEditing && (
+            <button 
+              onClick={handleBulkEdit} 
+              className="bulk-edit-button"
+              type="button"
+            >
+              📝 Bulk Edit
+            </button>
+          )}
+          <span 
+            className={`expand-icon ${isExpanded ? 'expanded' : ''}`}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            ▼
+          </span>
+        </div>
       </div>
 
       {isExpanded && (
         <div className="section-content">
-          {type === 'text' && (
-            <textarea
-              value={content}
-              onChange={(e) => handleTextChange(e.target.value)}
-              className="text-editor"
-              placeholder="Enter your personal summary..."
-              rows={4}
-            />
-          )}
+          {isBulkEditing ? (
+            <div className="bulk-edit-mode">
+              <textarea
+                value={bulkEditContent}
+                onChange={(e) => setBulkEditContent(e.target.value)}
+                className="bulk-edit-textarea"
+                placeholder={type === 'experience' 
+                  ? "[Company Name] Job Title (Duration)\nFirst achievement or responsibility\nSecond achievement or responsibility\n\n[Another Company] Another Job Title (Duration)\nAnother achievement\nAnother responsibility"
+                  : "[Project Name] Brief description\nFirst accomplishment\nSecond accomplishment\n\n[Another Project] Another description\nAnother accomplishment"
+                }
+                rows={15}
+              />
+              <div className="format-help">
+                <h4>📝 Simple Format:</h4>
+                <ul>
+                  <li><strong>[Company/Project]</strong> Title/Description (Duration)</li>
+                  <li>Bullet point 1</li>
+                  <li>Bullet point 2</li>
+                  <li><em>Empty line to separate entries</em></li>
+                </ul>
+              </div>
+              <div className="bulk-edit-actions">
+                <button onClick={handleBulkSave} className="save-button">
+                  💾 Save
+                </button>
+                <button onClick={handleBulkCancel} className="cancel-button">
+                  ❌ Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {type === 'text' && (
+                <textarea
+                  value={content}
+                  onChange={(e) => handleTextChange(e.target.value)}
+                  className="text-editor"
+                  placeholder="Enter your personal summary..."
+                  rows={4}
+                />
+              )}
 
-          {type === 'experience' && (
-            <div className="experience-list">
+              {type === 'experience' && (
+                <div className="experience-list">
               {content.map((exp: any, expIndex: number) => (
                 <div key={expIndex} className="experience-item">
                   <div className="experience-header">
@@ -146,11 +281,11 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ title, content, onUpdate,
                   </div>
                 </div>
               ))}
-            </div>
-          )}
+                </div>
+              )}
 
-          {type === 'projects' && (
-            <div className="projects-list">
+              {type === 'projects' && (
+                <div className="projects-list">
               {content.map((project: any, projectIndex: number) => (
                 <div key={projectIndex} className="project-item">
                   <div className="project-header">
@@ -201,7 +336,9 @@ const SectionEditor: React.FC<SectionEditorProps> = ({ title, content, onUpdate,
                   </div>
                 </div>
               ))}
-            </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

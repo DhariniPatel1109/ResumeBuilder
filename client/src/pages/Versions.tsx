@@ -1,13 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_ENDPOINTS } from '../config/api';
-import './Versions.css';
+/**
+ * Versions Page - Refactored with centralized theme system
+ */
 
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import PageLayout from '../components/layout/PageLayout';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import { API_ENDPOINTS } from '../config/api';
 interface Version {
   id: string;
   companyName: string;
   sections: any;
   createdAt: string;
+  originalDocument?: {
+    fileName: string;
+    filePath: string;
+    fileType: string;
+    uploadDate: string;
+  };
 }
 
 const Versions: React.FC = () => {
@@ -15,6 +27,7 @@ const Versions: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchVersions();
@@ -40,7 +53,7 @@ const Versions: React.FC = () => {
     } catch (error) {
       console.error('Error fetching versions:', error);
       setError('Failed to load saved versions');
-      setVersions([]); // Ensure versions is always an array
+      setVersions([]);
     } finally {
       setLoading(false);
     }
@@ -48,50 +61,40 @@ const Versions: React.FC = () => {
 
   const handleLoadVersion = (version: Version) => {
     try {
-      console.log('📋 Loading version for company:', version.companyName);
+      console.log('Loading version:', version);
       
-      // Store the version data in sessionStorage and redirect to editor
-      const dataToStore = {
+      // Create resume data object with the version's sections
+      const resumeData = {
         sections: version.sections,
-        originalText: '', // We don't have original text for saved versions
-        companyName: version.companyName // Include the company name
+        originalText: '', // We don't store original text in versions
+        companyName: version.companyName,
+        originalDocument: version.originalDocument
       };
       
-      console.log('📋 Storing data:', dataToStore);
-      sessionStorage.setItem('resumeData', JSON.stringify(dataToStore));
-      window.location.href = '/editor';
+      // Store in sessionStorage for the editor
+      sessionStorage.setItem('resumeData', JSON.stringify(resumeData));
+      
+      // Navigate to editor
+      navigate('/editor');
     } catch (error) {
       console.error('Error loading version:', error);
       alert('Failed to load version. Please try again.');
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const handleExportVersion = async (version: Version, format: 'word' | 'pdf') => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid Date';
-    }
-  };
-
-  const handleExport = async (version: Version, format: 'word' | 'pdf') => {
-    try {
-      setExporting(`${version.id}-${format}`);
-      console.log(`📤 Exporting ${format.toUpperCase()} for ${version.companyName}`);
-
-      const response = await axios.post(API_ENDPOINTS[format === 'word' ? 'EXPORT_WORD' : 'EXPORT_PDF'], {
-        sections: version.sections,
-        companyName: version.companyName
-      }, {
-        responseType: 'blob'
-      });
+      setExporting(version.id);
+      
+      const response = await axios.post(
+        API_ENDPOINTS[format === 'word' ? 'EXPORT_WORD' : 'EXPORT_PDF'],
+        {
+          sections: version.sections,
+          companyName: version.companyName,
+          originalDocument: version.originalDocument
+        },
+        { responseType: 'blob' }
+      );
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -101,133 +104,196 @@ const Versions: React.FC = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-
-      console.log(`✅ ${format.toUpperCase()} exported successfully`);
     } catch (error) {
-      console.error(`❌ Export ${format.toUpperCase()} error:`, error);
-      alert(`Failed to export ${format.toUpperCase()}. Please try again.`);
+      console.error('Export error:', error);
+      alert('Failed to export resume. Please try again.');
     } finally {
       setExporting(null);
     }
   };
 
+  const handleDeleteVersion = async (versionId: string) => {
+    if (!window.confirm('Are you sure you want to delete this version?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_ENDPOINTS.DELETE_VERSION}/${versionId}`);
+      setVersions(versions.filter(v => v.id !== versionId));
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to delete version. Please try again.');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   if (loading) {
     return (
-      <div className="versions-loading">
-        <div className="spinner"></div>
-        <p>Loading saved versions...</p>
-      </div>
-    );
-  }
-
-  // Ensure versions is always an array
-  const safeVersions = versions || [];
-
-  if (error) {
-    return (
-      <div className="versions-error">
-        <h2>Error</h2>
-        <p>{error}</p>
-        <button onClick={fetchVersions} className="retry-button">
-          Try Again
-        </button>
-      </div>
+      <PageLayout title="Loading Versions...">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading saved versions...</p>
+          </div>
+        </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="versions">
-      <div className="versions-header">
-        <h1>Saved Versions</h1>
-        <p>Manage your customized resume versions for different companies</p>
-      </div>
+    <PageLayout
+      title="Saved Versions"
+      subtitle="Manage your customized resume versions"
+      breadcrumbs={[
+        { label: 'Home', href: '/' },
+        { label: 'Versions' }
+      ]}
+    >
+      <div className="space-y-8">
+        {/* Error State */}
+        {error && (
+          <Card variant="elevated" padding="lg" className="border-error-200 bg-error-50">
+            <div className="flex items-center gap-3">
+              <span className="text-error-600 text-2xl">⚠️</span>
+              <div>
+                <h3 className="text-error-800 font-semibold">Error Loading Versions</h3>
+                <p className="text-error-600">{error}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchVersions}
+                className="ml-auto border-error-300 text-error-700 hover:bg-error-100"
+              >
+                Retry
+              </Button>
+            </div>
+          </Card>
+        )}
 
-      {safeVersions.length === 0 ? (
-        <div className="no-versions">
-          <div className="no-versions-icon">📄</div>
-          <h2>No saved versions yet</h2>
-          <p>Create and save your first customized resume version</p>
-          <a href="/" className="create-version-button">
-            Create New Version
-          </a>
-        </div>
-      ) : (
-        <div className="versions-grid">
-          {safeVersions.map((version) => (
-            <div key={version.id} className="version-card">
-              <div className="version-header">
-                <h3>{version.companyName}</h3>
-                <span className="version-date">
-                  {formatDate(version.createdAt)}
-                </span>
-              </div>
-              
-              <div className="version-preview">
-                <div className="preview-section">
-                  <strong>Personal Summary:</strong>
-                  <p>{version.sections.personalSummary?.substring(0, 100)}...</p>
+        {/* Empty State */}
+        {!loading && !error && versions.length === 0 && (
+          <Card variant="elevated" padding="lg" className="text-center">
+            <div className="text-6xl mb-4">📄</div>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+              No Saved Versions
+            </h3>
+            <p className="text-gray-600 mb-6">
+              You haven't saved any resume versions yet. Create your first version in the editor!
+            </p>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => navigate('/editor')}
+            >
+              Go to Editor
+            </Button>
+          </Card>
+        )}
+
+        {/* Versions Grid */}
+        {versions.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {versions.map((version) => (
+              <Card key={version.id} variant="elevated" padding="lg" className="hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {version.companyName}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Created: {formatDate(version.createdAt)}
+                    </p>
+                    {version.originalDocument && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        Source: {version.originalDocument.fileName}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteVersion(version.id)}
+                    className="text-gray-400 hover:text-error-600"
+                  >
+                    🗑️
+                  </Button>
                 </div>
-                
-                <div className="preview-section">
-                  <strong>Work Experience:</strong>
-                  <p>{version.sections.workExperience?.length || 0} positions</p>
+
+                <div className="space-y-3">
+                  <Button
+                    variant="primary"
+                    size="base"
+                    onClick={() => handleLoadVersion(version)}
+                    fullWidth
+                  >
+                    📝 Edit Version
+                  </Button>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportVersion(version, 'word')}
+                      disabled={exporting === version.id}
+                      loading={exporting === version.id}
+                    >
+                      📄 Word
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportVersion(version, 'pdf')}
+                      disabled={exporting === version.id}
+                      loading={exporting === version.id}
+                    >
+                      📋 PDF
+                    </Button>
+                  </div>
                 </div>
-                
-                <div className="preview-section">
-                  <strong>Projects:</strong>
-                  <p>{version.sections.projects?.length || 0} projects</p>
-                </div>
-              </div>
-              
-              <div className="version-actions">
-                <button
-                  onClick={() => handleLoadVersion(version)}
-                  className="load-version-button"
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Quick Actions */}
+        {versions.length > 0 && (
+          <Card variant="default" padding="lg" className="bg-gradient-to-r from-primary-50 to-secondary-50">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Need to create a new version?
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Start fresh or load an existing version to edit
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/editor')}
                 >
-                  📝 Edit Version
-                </button>
-                
-                <div className="export-buttons">
-                  <button
-                    onClick={() => handleExport(version, 'word')}
-                    disabled={exporting === `${version.id}-word`}
-                    className="export-button word-export"
-                  >
-                    {exporting === `${version.id}-word` ? (
-                      <>
-                        <div className="spinner-small"></div>
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        📄 Export Word
-                      </>
-                    )}
-                  </button>
-                  
-                  <button
-                    onClick={() => handleExport(version, 'pdf')}
-                    disabled={exporting === `${version.id}-pdf`}
-                    className="export-button pdf-export"
-                  >
-                    {exporting === `${version.id}-pdf` ? (
-                      <>
-                        <div className="spinner-small"></div>
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        📋 Export PDF
-                      </>
-                    )}
-                  </button>
-                </div>
+                  Create New Version
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/')}
+                >
+                  Upload New Resume
+                </Button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </Card>
+        )}
+      </div>
+    </PageLayout>
   );
 };
 

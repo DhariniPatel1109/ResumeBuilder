@@ -20,17 +20,26 @@ export interface DynamicSection {
 }
 
 export interface ResumeSection {
-  personalSummary: string;
-  workExperience: WorkExperience[];
-  projects: Project[];
-  // Dynamic sections for flexible resume structures
-  dynamicSections?: Record<string, DynamicSection>;
+  // Core sections (for backward compatibility)
+  personalSummary?: string;
+  workExperience?: WorkExperience[];
+  projects?: Project[];
+  
+  // Dynamic sections - AI can create any structure
+  [key: string]: any;
 }
 
 export interface ResumeData {
   sections: ResumeSection;
   originalText: string;
   companyName?: string;
+  // Document reference for format preservation
+  originalDocument?: {
+    fileName: string;
+    filePath: string;
+    fileType: string;
+    uploadDate: string;
+  };
 }
 
 export interface SavedVersion {
@@ -38,6 +47,13 @@ export interface SavedVersion {
   companyName: string;
   sections: ResumeSection;
   createdAt: string;
+  // Document reference for format preservation
+  originalDocument?: {
+    fileName: string;
+    filePath: string;
+    fileType: string;
+    uploadDate: string;
+  };
 }
 
 export interface ApiResponse<T = any> {

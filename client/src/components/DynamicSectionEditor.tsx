@@ -22,21 +22,21 @@ const DynamicSectionEditor: React.FC<DynamicSectionEditorProps> = ({
     } else if (section.type === 'list') {
       setEditContent(Array.isArray(section.content) ? section.content.join('\n') : '');
     } else if (section.type === 'experience') {
-      // Format experience entries for easy editing
+      // Simple format: One experience per line with bullets
       const formattedContent = Array.isArray(section.content) 
-        ? section.content.map((exp: any, index: number) => {
-            const bullets = exp.bullets ? exp.bullets.join('\n  • ') : '';
-            return `Company: ${exp.company || ''}\nTitle: ${exp.title || ''}\nDuration: ${exp.duration || ''}\nBullets:\n  • ${bullets}`;
-          }).join('\n\n---\n\n')
+        ? section.content.map((exp: any) => {
+            const bullets = exp.bullets ? exp.bullets.join('\n') : '';
+            return `[${exp.company || 'Company'}] ${exp.title || 'Title'} (${exp.duration || 'Duration'})\n${bullets}`;
+          }).join('\n\n')
         : '';
       setEditContent(formattedContent);
     } else if (section.type === 'projects') {
-      // Format project entries for easy editing
+      // Simple format: One project per line with bullets
       const formattedContent = Array.isArray(section.content) 
-        ? section.content.map((project: any, index: number) => {
-            const bullets = project.bullets ? project.bullets.join('\n  • ') : '';
-            return `Name: ${project.name || ''}\nDescription: ${project.description || ''}\nBullets:\n  • ${bullets}`;
-          }).join('\n\n---\n\n')
+        ? section.content.map((project: any) => {
+            const bullets = project.bullets ? project.bullets.join('\n') : '';
+            return `[${project.name || 'Project Name'}] ${project.description || 'Description'}\n${bullets}`;
+          }).join('\n\n')
         : '';
       setEditContent(formattedContent);
     } else {
@@ -52,28 +52,25 @@ const DynamicSectionEditor: React.FC<DynamicSectionEditorProps> = ({
       const listItems = editContent.split('\n').filter(item => item.trim());
       onUpdate(listItems);
     } else if (section.type === 'experience') {
-      // Parse formatted experience content back to structured data
+      // Parse simple format: [Company] Title (Duration) followed by bullets
       try {
-        const entries = editContent.split('\n\n---\n\n').filter(entry => entry.trim());
+        const entries = editContent.split('\n\n').filter(entry => entry.trim());
         const parsedEntries = entries.map(entry => {
           const lines = entry.split('\n');
-          const exp: any = { company: '', title: '', duration: '', bullets: [] };
+          const headerLine = lines[0];
+          const bullets = lines.slice(1).filter(line => line.trim());
           
-          lines.forEach(line => {
-            if (line.startsWith('Company:')) {
-              exp.company = line.replace('Company:', '').trim();
-            } else if (line.startsWith('Title:')) {
-              exp.title = line.replace('Title:', '').trim();
-            } else if (line.startsWith('Duration:')) {
-              exp.duration = line.replace('Duration:', '').trim();
-            } else if (line.startsWith('Bullets:')) {
-              // Skip the "Bullets:" line
-            } else if (line.startsWith('  • ')) {
-              exp.bullets.push(line.replace('  • ', '').trim());
-            }
-          });
+          // Parse header: [Company] Title (Duration)
+          const companyMatch = headerLine.match(/^\[([^\]]+)\]/);
+          const titleMatch = headerLine.match(/\]\s*([^(]+)/);
+          const durationMatch = headerLine.match(/\(([^)]+)\)/);
           
-          return exp;
+          return {
+            company: companyMatch ? companyMatch[1].trim() : '',
+            title: titleMatch ? titleMatch[1].trim() : '',
+            duration: durationMatch ? durationMatch[1].trim() : '',
+            bullets: bullets
+          };
         });
         onUpdate(parsedEntries);
       } catch (error) {
@@ -82,26 +79,23 @@ const DynamicSectionEditor: React.FC<DynamicSectionEditorProps> = ({
         return;
       }
     } else if (section.type === 'projects') {
-      // Parse formatted project content back to structured data
+      // Parse simple format: [Project Name] Description followed by bullets
       try {
-        const entries = editContent.split('\n\n---\n\n').filter(entry => entry.trim());
+        const entries = editContent.split('\n\n').filter(entry => entry.trim());
         const parsedEntries = entries.map(entry => {
           const lines = entry.split('\n');
-          const project: any = { name: '', description: '', bullets: [] };
+          const headerLine = lines[0];
+          const bullets = lines.slice(1).filter(line => line.trim());
           
-          lines.forEach(line => {
-            if (line.startsWith('Name:')) {
-              project.name = line.replace('Name:', '').trim();
-            } else if (line.startsWith('Description:')) {
-              project.description = line.replace('Description:', '').trim();
-            } else if (line.startsWith('Bullets:')) {
-              // Skip the "Bullets:" line
-            } else if (line.startsWith('  • ')) {
-              project.bullets.push(line.replace('  • ', '').trim());
-            }
-          });
+          // Parse header: [Project Name] Description
+          const nameMatch = headerLine.match(/^\[([^\]]+)\]/);
+          const descriptionMatch = headerLine.match(/\]\s*(.+)/);
           
-          return project;
+          return {
+            name: nameMatch ? nameMatch[1].trim() : '',
+            description: descriptionMatch ? descriptionMatch[1].trim() : '',
+            bullets: bullets
+          };
         });
         onUpdate(parsedEntries);
       } catch (error) {
@@ -237,13 +231,25 @@ const DynamicSectionEditor: React.FC<DynamicSectionEditorProps> = ({
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            placeholder="Company: Your Company Name&#10;Title: Your Job Title&#10;Duration: Jan 2020 - Present&#10;Bullets:&#10;  • First achievement&#10;  • Second achievement&#10;&#10;---&#10;&#10;Company: Another Company&#10;Title: Another Position&#10;Duration: Jan 2018 - Dec 2019&#10;Bullets:&#10;  • Another achievement"
+            placeholder="[Company Name] Job Title (Duration)&#10;First achievement or responsibility&#10;Second achievement or responsibility&#10;&#10;[Another Company] Another Job Title (Duration)&#10;Another achievement&#10;Another responsibility"
             rows={15}
           />
-          <small>
-            💡 Format: Company, Title, Duration, then Bullets (one per line with • prefix)<br/>
-            💡 Separate multiple jobs with "---" on its own line
-          </small>
+          <div className="format-help">
+            <h4>📝 Simple Format:</h4>
+            <ul>
+              <li><strong>[Company]</strong> Job Title (Duration)</li>
+              <li>Bullet point 1</li>
+              <li>Bullet point 2</li>
+              <li><em>Empty line to separate jobs</em></li>
+            </ul>
+            <p>💡 <strong>Example:</strong><br/>
+            [Google] Software Engineer (2020-2023)<br/>
+            Developed scalable web applications<br/>
+            Led team of 5 developers<br/>
+            <br/>
+            [Microsoft] Intern (Summer 2019)<br/>
+            Built machine learning models</p>
+          </div>
         </div>
       );
     } else if (section.type === 'projects') {
@@ -252,13 +258,26 @@ const DynamicSectionEditor: React.FC<DynamicSectionEditorProps> = ({
           <textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            placeholder="Name: Project Name&#10;Description: Brief project description&#10;Bullets:&#10;  • First accomplishment&#10;  • Second accomplishment&#10;&#10;---&#10;&#10;Name: Another Project&#10;Description: Another description&#10;Bullets:&#10;  • Another accomplishment"
+            placeholder="[Project Name] Brief description&#10;First accomplishment&#10;Second accomplishment&#10;&#10;[Another Project] Another description&#10;Another accomplishment"
             rows={15}
           />
-          <small>
-            💡 Format: Name, Description, then Bullets (one per line with • prefix)<br/>
-            💡 Separate multiple projects with "---" on its own line
-          </small>
+          <div className="format-help">
+            <h4>📝 Simple Format:</h4>
+            <ul>
+              <li><strong>[Project Name]</strong> Brief description</li>
+              <li>Accomplishment 1</li>
+              <li>Accomplishment 2</li>
+              <li><em>Empty line to separate projects</em></li>
+            </ul>
+            <p>💡 <strong>Example:</strong><br/>
+            [E-commerce Platform] Full-stack web application<br/>
+            Built with React and Node.js<br/>
+            Handled 10,000+ daily users<br/>
+            <br/>
+            [Mobile App] iOS fitness tracker<br/>
+            Used Swift and Core Data<br/>
+            Achieved 4.8 App Store rating</p>
+          </div>
         </div>
       );
     } else {

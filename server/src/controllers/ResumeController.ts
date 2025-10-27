@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { v4 as uuidv4 } from 'uuid';
 import { DocumentParser } from '../services/DocumentParser';
+import { AIResumeParser } from '../services/AIResumeParser';
 import { VersionManager } from '../services/VersionManager';
 import { ExportService } from '../services/ExportService';
 import { ApiResponse } from '../types';
@@ -47,7 +48,24 @@ export class ResumeController {
         filePath
       }, 'ResumeController');
       
-      const parsedData = await DocumentParser.parseResume(filePath, fileExtension);
+      // Use AI-enhanced parser for better accuracy
+      const parsedData = await AIResumeParser.parseResume(filePath, fileExtension);
+      
+      // Add document reference for format preservation
+      parsedData.originalDocument = {
+        fileName: req.file.originalname,
+        filePath: filePath,
+        fileType: fileExtension,
+        uploadDate: new Date().toISOString()
+      };
+      
+      // Validate parsing quality
+      const validation = AIResumeParser.validateParsedData(parsedData);
+      logger.info('Resume parsing validation', {
+        qualityScore: validation.score,
+        issues: validation.issues,
+        documentReference: parsedData.originalDocument
+      }, 'ResumeController');
       
       logger.info('Resume parsing completed', {
         textLength: parsedData.text.length,
