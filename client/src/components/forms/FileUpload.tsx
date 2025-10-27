@@ -3,10 +3,9 @@
  */
 
 import React, { useRef, useState } from 'react';
-import axios from 'axios';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
-import { API_ENDPOINTS } from '../../config/api';
+import { ResumeService } from '../../services';
 
 interface FileUploadProps {
   onUploadSuccess: (data: any) => void;
@@ -26,45 +25,16 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const handleFileUpload = async (file: File) => {
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = [
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-      'application/msword', // .doc
-      'application/pdf' // .pdf
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      setError('Please upload a valid file (.docx, .doc, or .pdf)');
-      return;
-    }
-
-    // Validate file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
-      return;
-    }
-
     setError(null);
     setIsUploading(true);
-    
-    const formData = new FormData();
-    formData.append('resume', file);
 
     try {
-      const response = await axios.post(API_ENDPOINTS.UPLOAD, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      console.log('Upload response:', response.data);
-      onUploadSuccess(response.data);
+      const response = await ResumeService.uploadResume(file);
+      console.log('Upload response:', response);
+      onUploadSuccess(response);
     } catch (error: any) {
       console.error('Upload error:', error);
-      setError(
-        error.response?.data?.error || 
-        'Failed to upload file. Please try again.'
-      );
+      setError(error.message || 'Failed to upload file. Please try again.');
     } finally {
       setIsUploading(false);
     }

@@ -4,9 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_ENDPOINTS } from '../config/api';
-import { ResumeData } from '../types';
+import { ResumeService, VersionService, ExportService, ResumeData } from '../services';
 
 export const useResumeData = () => {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
@@ -16,37 +14,14 @@ export const useResumeData = () => {
 
   // Load resume data from session storage
   useEffect(() => {
-    const storedData = sessionStorage.getItem('resumeData');
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        console.log('📋 Loaded resume data:', parsedData);
-        
-        // Validate and normalize the data structure
-        const normalizedData: ResumeData = {
-          sections: {
-            personalSummary: parsedData.sections?.personalSummary || parsedData.personalSummary || '',
-            workExperience: parsedData.sections?.workExperience || parsedData.workExperience || [],
-            projects: parsedData.sections?.projects || parsedData.projects || [],
-            ...parsedData.sections // Include any dynamic sections
-          },
-          originalText: parsedData.originalText || '',
-          companyName: parsedData.companyName,
-          originalDocument: parsedData.originalDocument
-        };
-
-        console.log('📋 Normalized resume data:', normalizedData);
-        setResumeData(normalizedData);
-
-        // Load company name if it exists (for loaded versions)
-        if (parsedData.companyName) {
-          setCompanyName(parsedData.companyName);
-          console.log('📋 Loaded version for company:', parsedData.companyName);
-        }
-      } catch (error) {
-        console.error('❌ Error parsing resume data:', error);
-        alert('Error loading resume data. Please try uploading again.');
-        navigate('/');
+    const loadedData = ResumeService.loadResumeFromStorage();
+    if (loadedData) {
+      setResumeData(loadedData);
+      
+      // Load company name if it exists (for loaded versions)
+      if (loadedData.companyName) {
+        setCompanyName(loadedData.companyName);
+        console.log('📋 Loaded version for company:', loadedData.companyName);
       }
     } else {
       navigate('/');
@@ -56,27 +31,17 @@ export const useResumeData = () => {
   // Update a specific section
   const updateSection = (sectionType: string, data: any) => {
     if (!resumeData) return;
-
-    setResumeData({
-      ...resumeData,
-      sections: {
-        ...resumeData.sections,
-        [sectionType]: data
-      }
-    });
+    const updatedData = ResumeService.updateSection(resumeData, sectionType, data);
+    setResumeData(updatedData);
+    ResumeService.saveResumeToStorage(updatedData);
   };
 
   // Update a dynamic section
   const updateDynamicSection = (sectionName: string, content: any) => {
     if (!resumeData) return;
-
-    setResumeData({
-      ...resumeData,
-      sections: {
-        ...resumeData.sections,
-        [sectionName]: content
-      }
-    });
+    const updatedData = ResumeService.updateDynamicSection(resumeData, sectionName, content);
+    setResumeData(updatedData);
+    ResumeService.saveResumeToStorage(updatedData);
   };
 
   // Save version
@@ -88,15 +53,15 @@ export const useResumeData = () => {
 
     setIsSaving(true);
     try {
-      const response = await axios.post(API_ENDPOINTS.SAVE_VERSION, {
+      const response = await VersionService.saveVersion({
         companyName: companyName.trim(),
         sections: resumeData.sections,
         originalDocument: resumeData.originalDocument
       });
 
-      if (response.data.success) {
+      if (response.success) {
         alert('Version saved successfully!');
-        console.log('✅ Version saved:', response.data);
+        console.log('✅ Version saved:', response);
       } else {
         alert('Failed to save version');
       }
@@ -113,22 +78,11 @@ export const useResumeData = () => {
     if (!resumeData) return;
 
     try {
-      const response = await axios.post(API_ENDPOINTS[format === 'word' ? 'EXPORT_WORD' : 'EXPORT_PDF'], {
+      await ExportService.exportResume(format, {
         sections: resumeData.sections,
         companyName: companyName.trim() || 'Resume',
         originalDocument: resumeData.originalDocument
-      }, {
-        responseType: 'blob'
       });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${companyName.trim() || 'Resume'}_Resume.${format === 'word' ? 'docx' : 'pdf'}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error(`❌ Error exporting ${format}:`, error);
       alert(`Error exporting ${format.toUpperCase()}. Please try again.`);
