@@ -17,8 +17,6 @@ import {
   Wrench, 
   GraduationCap, 
   Zap, 
-  ChevronLeft, 
-  ChevronRight, 
   Eye, 
   Edit3, 
   FileDown, 
@@ -27,7 +25,9 @@ import {
   Trash2, 
   Bot, 
   Lightbulb, 
-  Loader2
+  Loader2,
+  Menu,
+  X
 } from 'lucide-react';
 
 const ResumeEditor: React.FC = () => {
@@ -94,6 +94,25 @@ const ResumeEditor: React.FC = () => {
         updateSection('projects', updatedProjects);
       }
     });
+  };
+
+  // Company name handlers
+  const handleSaveWithCompany = async () => {
+    if (!companyName.trim()) {
+      const company = prompt('Enter company name for this version:');
+      if (!company?.trim()) return;
+      setCompanyName(company.trim());
+    }
+    await saveVersion();
+  };
+
+  const handleExportWithCompany = async (format: 'pdf' | 'word') => {
+    if (!companyName.trim()) {
+      const company = prompt(`Enter company name for ${format.toUpperCase()} export:`);
+      if (!company?.trim()) return;
+      setCompanyName(company.trim());
+    }
+    await exportResume(format);
   };
 
 
@@ -171,19 +190,12 @@ const ResumeEditor: React.FC = () => {
   }
 
   return (
-    <PageLayout
-      title="Resume Editor"
-      subtitle="Create and customize your professional resume"
-      breadcrumbs={[
-        { label: 'Home', href: '/' },
-        { label: 'Editor' }
-      ]}
-    >
+    <PageLayout>
       <div className="flex h-[calc(100vh-200px)] gap-6">
         {/* Sidebar Navigation */}
         <div className={`${sidebarCollapsed ? 'w-16' : 'w-80'} transition-all duration-300 flex-shrink-0`}>
           <Card variant="elevated" className="h-full">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className={`border-b border-gray-200 dark:border-gray-700 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
               <div className="flex items-center justify-between">
                 <h3 className={`font-semibold text-gray-900 dark:text-white ${sidebarCollapsed ? 'hidden' : 'block'}`}>
                   Resume Sections
@@ -194,23 +206,24 @@ const ResumeEditor: React.FC = () => {
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                   className="p-2"
                 >
-                  {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                  {sidebarCollapsed ? <Menu className="w-4 h-4" /> : <X className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className={`flex-1 overflow-y-auto space-y-2 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
               {sections.map((section) => {
                 const IconComponent = section.icon;
                 return (
                   <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
+                    className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2' : 'gap-3 p-3'} rounded-lg transition-all duration-200 ${
                       activeSection === section.id
                         ? `bg-${section.color}-100 dark:bg-${section.color}-900/30 text-${section.color}-700 dark:text-${section.color}-300 border border-${section.color}-200 dark:border-${section.color}-700`
                         : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
                     }`}
+                    title={sidebarCollapsed ? section.title : undefined}
                   >
                     <IconComponent className="w-5 h-5" />
                     {!sidebarCollapsed && (
@@ -226,9 +239,10 @@ const ResumeEditor: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAIPopup(true)}
-                  className="w-full flex items-center gap-2"
+                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2' : 'gap-2'}`}
+                  title={sidebarCollapsed ? "AI Enhance" : undefined}
                 >
-                  <Bot className="w-4 h-4" />
+                  <Bot className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
                   {!sidebarCollapsed && "AI Enhance"}
                 </Button>
               </div>
@@ -239,67 +253,51 @@ const ResumeEditor: React.FC = () => {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
-          {/* Top Toolbar */}
-          <Card variant="elevated" padding="lg" className="mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {sections.find(s => s.id === activeSection)?.title}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Company name..."
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="w-48"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPreview(!showPreview)}
-                  className="flex items-center gap-2"
-                >
-                  {showPreview ? <Edit3 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  {showPreview ? 'Edit Mode' : 'Preview Mode'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => exportResume('pdf')}
-                  disabled={!companyName.trim()}
-                  className="flex items-center gap-2"
-                >
-                  <FileDown className="w-4 h-4" />
-                  PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => exportResume('word')}
-                  disabled={!companyName.trim()}
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  Word
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={saveVersion}
-                  disabled={!companyName.trim() || isSaving}
-                  loading={isSaving}
-                  className="flex items-center gap-2"
-                >
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {isSaving ? 'Saving...' : 'Save Version'}
-                </Button>
-              </div>
+          {/* Floating Action Bar */}
+          <div className="flex items-center justify-end mb-4">
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="h-9 px-3 flex items-center gap-2"
+              >
+                {showPreview ? <Edit3 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPreview ? 'Edit' : 'Preview'}
+              </Button>
+              
+              <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExportWithCompany('pdf')}
+                className="h-9 px-3 flex items-center gap-2"
+              >
+                <FileDown className="w-4 h-4" />
+                PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExportWithCompany('word')}
+                className="h-9 px-3 flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Word
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleSaveWithCompany()}
+                loading={isSaving}
+                className="h-9 px-3 flex items-center gap-2"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save
+              </Button>
             </div>
-          </Card>
+          </div>
 
           {/* Content Area */}
           <div className="flex-1 flex gap-6">
@@ -311,9 +309,6 @@ const ResumeEditor: React.FC = () => {
                   <div className="space-y-6">
                     {activeSection === 'personalSummary' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Personal Summary
-                        </label>
                         <textarea
                           value={resumeData.sections?.personalSummary || ''}
                           onChange={(e) => updateSection('personalSummary', e.target.value)}
@@ -329,10 +324,6 @@ const ResumeEditor: React.FC = () => {
                         {/* Header with View Toggle */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                              Work Experience
-                            </h3>
                             <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                               <button
                                 onClick={() => setWorkExpViewMode('form')}
@@ -532,10 +523,6 @@ const ResumeEditor: React.FC = () => {
                         {/* Header with View Toggle */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Wrench className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                              Projects
-                            </h3>
                             <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                               <button
                                 onClick={() => setProjectsViewMode('form')}
@@ -719,10 +706,6 @@ const ResumeEditor: React.FC = () => {
                         {/* Header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <GraduationCap className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                              Education
-                            </h3>
                           </div>
                           <Button
                             variant="outline"
@@ -852,10 +835,6 @@ const ResumeEditor: React.FC = () => {
                         {/* Header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Zap className="w-6 h-6 text-pink-600 dark:text-pink-400" />
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                              Skills
-                            </h3>
                           </div>
                         </div>
 

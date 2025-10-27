@@ -30,7 +30,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   return (
     <div className={`min-h-screen bg-gray-50 ${className}`}>
       {/* Header */}
-      {!hideHeader && (title || headerActions || breadcrumbs) && (
+      {!hideHeader && (title || headerActions || (breadcrumbs && breadcrumbs.length > 0)) && (
         <header className="bg-white border-b border-gray-200 shadow-sm">
           <div className={theme.layout.container.base}>
             <div className="py-6">
@@ -73,16 +73,6 @@ const PageLayout: React.FC<PageLayoutProps> = ({
                 
                 <div className="flex items-center gap-4">
                   {headerActions}
-                  
-                  {/* Theme Toggle */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleTheme}
-                    icon={isDark ? '☀️' : '🌙'}
-                  >
-                    {isDark ? 'Light' : 'Dark'}
-                  </Button>
                 </div>
               </div>
             </div>
@@ -92,10 +82,23 @@ const PageLayout: React.FC<PageLayoutProps> = ({
 
       {/* Main Content */}
       <main className={theme.layout.container.base}>
-        <div className="py-8">
+        <div className={!hideHeader && (title || headerActions || (breadcrumbs && breadcrumbs.length > 0)) ? "py-8" : "py-4"}>
           {children}
         </div>
       </main>
+
+      {/* Floating Theme Toggle */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleTheme}
+          className="shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+        >
+          <span className="text-lg mr-2">{isDark ? '☀️' : '🌙'}</span>
+          {isDark ? 'Light' : 'Dark'}
+        </Button>
+      </div>
     </div>
   );
 };

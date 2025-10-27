@@ -146,14 +146,7 @@ const Versions: React.FC = () => {
   const stats = getVersionStats();
 
   return (
-    <PageLayout
-      title="Resume Versions"
-      subtitle="Manage and organize your customized resume versions"
-      breadcrumbs={[
-        { label: 'Home', href: '/' },
-        { label: 'Versions' }
-      ]}
-    >
+    <PageLayout>
       <div className="space-y-6 max-w-6xl mx-auto">
         {/* Stats Overview - Only show if meaningful */}
         {versions.length > 0 && (stats.thisWeek > 0 || stats.thisMonth > 0) && (
