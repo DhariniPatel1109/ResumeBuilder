@@ -1,14 +1,34 @@
 /**
- * Resume Editor Page - Refactored with centralized theme system
+ * Resume Editor Page - Modern, Enhanced UI/UX
  */
 
-import React, { useState } from 'react';
-import SectionManager from '../components/forms/SectionManager';
-import EditorActions from '../components/EditorActions';
-import AIEnhancementWorkflow from '../components/ai/ui/AIEnhancementWorkflow';
+import React, { useState, useEffect } from 'react';
 import { useResumeData } from '../hooks/useResumeData';
 import { useAIEnhancement } from '../hooks/useAIEnhancement';
 import PageLayout from '../components/layout/PageLayout';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import { ResumeService } from '../services';
+import { 
+  FileText, 
+  Briefcase, 
+  Wrench, 
+  GraduationCap, 
+  Zap, 
+  ChevronLeft, 
+  ChevronRight, 
+  Eye, 
+  Edit3, 
+  FileDown, 
+  Save, 
+  Plus, 
+  Trash2, 
+  Bot, 
+  Lightbulb, 
+  X,
+  Loader2
+} from 'lucide-react';
 
 const ResumeEditor: React.FC = () => {
   // Resume data management
@@ -43,8 +63,24 @@ const ResumeEditor: React.FC = () => {
     clearError,
   } = useAIEnhancement();
 
+  // UI State
+  const [activeSection, setActiveSection] = useState<string>('personalSummary');
+  const [showPreview, setShowPreview] = useState(false);
+  const [showAIPanel, setShowAIPanel] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [workExpViewMode, setWorkExpViewMode] = useState<'form' | 'text'>('form');
+  const [projectsViewMode, setProjectsViewMode] = useState<'form' | 'text'>('form');
+
+  // Section definitions
+  const sections = [
+    { id: 'personalSummary', title: 'Personal Summary', icon: FileText, color: 'blue' },
+    { id: 'workExperience', title: 'Work Experience', icon: Briefcase, color: 'green' },
+    { id: 'projects', title: 'Projects', icon: Wrench, color: 'purple' },
+    { id: 'education', title: 'Education', icon: GraduationCap, color: 'orange' },
+    { id: 'skills', title: 'Skills', icon: Zap, color: 'pink' },
+  ];
 
   // AI Enhancement handlers
   const handleStartAIEnhancement = async () => {
@@ -109,6 +145,66 @@ const ResumeEditor: React.FC = () => {
     clearSuggestions();
   };
 
+  // Helper functions for text area conversion
+  const convertWorkExpToText = (experiences: any[]) => {
+    return experiences.map(exp => {
+      const bullets = exp.bullets ? exp.bullets.join('\n') : '';
+      return `[${exp.company || 'Company'}] ${exp.title || 'Title'} (${exp.duration || 'Duration'})\n${bullets}`;
+    }).join('\n\n');
+  };
+
+  const convertTextToWorkExp = (text: string) => {
+    const entries = text.split('\n\n').filter(entry => entry.trim());
+    return entries.map(entry => {
+      const lines = entry.split('\n');
+      const headerLine = lines[0];
+      const bullets = lines.slice(1).filter(line => line.trim());
+      
+      const companyMatch = headerLine.match(/^\[([^\]]+)\]/);
+      const titleMatch = headerLine.match(/\]\s*([^(]+)/);
+      const durationMatch = headerLine.match(/\(([^)]+)\)/);
+      
+      return {
+        company: companyMatch ? companyMatch[1].trim() : '',
+        title: titleMatch ? titleMatch[1].trim() : '',
+        duration: durationMatch ? durationMatch[1].trim() : '',
+        bullets: bullets
+      };
+    });
+  };
+
+  const convertProjectsToText = (projects: any[]) => {
+    return projects.map(project => {
+      const bullets = project.bullets ? project.bullets.join('\n') : '';
+      return `[${project.name || 'Project Name'}] ${project.description || 'Description'}\n${bullets}`;
+    }).join('\n\n');
+  };
+
+  const convertTextToProjects = (text: string) => {
+    const entries = text.split('\n\n').filter(entry => entry.trim());
+    return entries.map(entry => {
+      const lines = entry.split('\n');
+      const headerLine = lines[0];
+      const bullets = lines.slice(1).filter(line => line.trim());
+      
+      const nameMatch = headerLine.match(/^\[([^\]]+)\]/);
+      const descriptionMatch = headerLine.match(/\]\s*(.+)/);
+      
+      return {
+        name: nameMatch ? nameMatch[1].trim() : '',
+        description: descriptionMatch ? descriptionMatch[1].trim() : '',
+        bullets: bullets
+      };
+    });
+  };
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (resumeData) {
+      ResumeService.saveResumeToStorage(resumeData);
+    }
+  }, [resumeData]);
+
   if (!resumeData) {
     return (
       <PageLayout title="Loading...">
@@ -125,35 +221,835 @@ const ResumeEditor: React.FC = () => {
   return (
     <PageLayout
       title="Resume Editor"
-      subtitle="Edit and enhance your resume content"
+      subtitle="Create and customize your professional resume"
       breadcrumbs={[
         { label: 'Home', href: '/' },
         { label: 'Editor' }
       ]}
     >
-      <div className="space-y-8">
-        {/* AI Enhancement Section */}
-        <AIEnhancementWorkflow
-          resumeData={resumeData}
-          onApplySuggestions={handleApplyAISuggestions}
-        />
+      <div className="flex h-[calc(100vh-200px)] gap-6">
+        {/* Sidebar Navigation */}
+        <div className={`${sidebarCollapsed ? 'w-16' : 'w-80'} transition-all duration-300 flex-shrink-0`}>
+          <Card variant="elevated" className="h-full">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className={`font-semibold text-gray-900 dark:text-white ${sidebarCollapsed ? 'hidden' : 'block'}`}>
+                  Resume Sections
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="p-2"
+                >
+                  {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
 
-        {/* Resume Sections */}
-        <SectionManager
-          resumeData={resumeData}
-          onUpdateSection={updateSection}
-          onUpdateDynamicSection={updateDynamicSection}
-        />
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {sections.map((section) => {
+                const IconComponent = section.icon;
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
+                      activeSection === section.id
+                        ? `bg-${section.color}-100 dark:bg-${section.color}-900/30 text-${section.color}-700 dark:text-${section.color}-300 border border-${section.color}-200 dark:border-${section.color}-700`
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    <IconComponent className="w-5 h-5" />
+                    {!sidebarCollapsed && (
+                      <span className="font-medium">{section.title}</span>
+                    )}
+                  </button>
+                );
+              })}
 
-        {/* Editor Actions */}
-        <EditorActions
-          companyName={companyName}
-          onCompanyNameChange={setCompanyName}
-          onSave={saveVersion}
-          onExport={(format) => exportResume(format)}
-          isSaving={isSaving}
-        />
+              {/* AI Enhancement Button */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+                <Button
+                  variant={aiEnabled ? "primary" : "outline"}
+                  size="sm"
+                  onClick={() => setShowAIPanel(!showAIPanel)}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Bot className="w-4 h-4" />
+                  {!sidebarCollapsed && "AI Enhance"}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Top Toolbar */}
+          <Card variant="elevated" padding="lg" className="mb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {sections.find(s => s.id === activeSection)?.title}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Company name..."
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="w-48"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="flex items-center gap-2"
+                >
+                  {showPreview ? <Edit3 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPreview ? 'Edit Mode' : 'Preview Mode'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => exportResume('pdf')}
+                  disabled={!companyName.trim()}
+                  className="flex items-center gap-2"
+                >
+                  <FileDown className="w-4 h-4" />
+                  PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => exportResume('word')}
+                  disabled={!companyName.trim()}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Word
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={saveVersion}
+                  disabled={!companyName.trim() || isSaving}
+                  loading={isSaving}
+                  className="flex items-center gap-2"
+                >
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isSaving ? 'Saving...' : 'Save Version'}
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Content Area */}
+          <div className="flex-1 flex gap-6">
+            {/* Editor Panel */}
+            <div className={`${showPreview ? 'w-1/2' : 'w-full'} transition-all duration-300`}>
+              <Card variant="elevated" padding="lg" className="h-full">
+                <div className="h-full overflow-y-auto">
+                  {/* Section Content will go here */}
+                  <div className="space-y-6">
+                    {activeSection === 'personalSummary' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Personal Summary
+                        </label>
+                        <textarea
+                          value={resumeData.sections?.personalSummary || ''}
+                          onChange={(e) => updateSection('personalSummary', e.target.value)}
+                          className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white resize-none"
+                          rows={6}
+                          placeholder="Write a compelling personal summary that highlights your key strengths and career objectives..."
+                        />
+                      </div>
+                    )}
+
+                    {activeSection === 'workExperience' && (
+                      <div className="space-y-6">
+                        {/* Header with View Toggle */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                              Work Experience
+                            </h3>
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                              <button
+                                onClick={() => setWorkExpViewMode('form')}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                                  workExpViewMode === 'form'
+                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                }`}
+                              >
+                                <FileText className="w-4 h-4" />
+                                Form View
+                              </button>
+                              <button
+                                onClick={() => setWorkExpViewMode('text')}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                                  workExpViewMode === 'text'
+                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                }`}
+                              >
+                                <Edit3 className="w-4 h-4" />
+                                Text View
+                              </button>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newExp = {
+                                title: '',
+                                company: '',
+                                duration: '',
+                                bullets: ['']
+                              };
+                              updateSection('workExperience', [...(resumeData.sections?.workExperience || []), newExp]);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Experience
+                          </Button>
+                        </div>
+
+                        {/* Form View */}
+                        {workExpViewMode === 'form' && (
+                          <div className="space-y-4">
+                            {(resumeData.sections?.workExperience || []).map((exp: any, index: number) => (
+                              <div key={index} className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
+                                <div className="flex items-start justify-between mb-4">
+                                  <div className="flex-1">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                          Job Title
+                                        </label>
+                                        <Input
+                                          placeholder="e.g., Senior Software Engineer"
+                                          value={exp.title || ''}
+                                          onChange={(e) => {
+                                            const updated = [...(resumeData.sections?.workExperience || [])];
+                                            updated[index] = { ...updated[index], title: e.target.value };
+                                            updateSection('workExperience', updated);
+                                          }}
+                                          className="bg-white dark:bg-gray-800"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                          Company
+                                        </label>
+                                        <Input
+                                          placeholder="e.g., Google, Microsoft"
+                                          value={exp.company || ''}
+                                          onChange={(e) => {
+                                            const updated = [...(resumeData.sections?.workExperience || [])];
+                                            updated[index] = { ...updated[index], company: e.target.value };
+                                            updateSection('workExperience', updated);
+                                          }}
+                                          className="bg-white dark:bg-gray-800"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                          Duration
+                                        </label>
+                                        <Input
+                                          placeholder="e.g., Jan 2020 - Present"
+                                          value={exp.duration || ''}
+                                          onChange={(e) => {
+                                            const updated = [...(resumeData.sections?.workExperience || [])];
+                                            updated[index] = { ...updated[index], duration: e.target.value };
+                                            updateSection('workExperience', updated);
+                                          }}
+                                          className="bg-white dark:bg-gray-800"
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Key Achievements
+                                      </label>
+                                      {(exp.bullets || []).map((bullet: string, bulletIndex: number) => (
+                                        <div key={bulletIndex} className="flex gap-2 items-start">
+                                          <span className="text-green-600 dark:text-green-400 mt-2 text-sm">•</span>
+                                          <Input
+                                            placeholder="Describe your achievement or responsibility..."
+                                            value={bullet}
+                                            onChange={(e) => {
+                                              const updated = [...(resumeData.sections?.workExperience || [])];
+                                              updated[index].bullets[bulletIndex] = e.target.value;
+                                              updateSection('workExperience', updated);
+                                            }}
+                                            className="flex-1 bg-white dark:bg-gray-800"
+                                          />
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                              const updated = [...(resumeData.sections?.workExperience || [])];
+                                              updated[index].bullets.splice(bulletIndex, 1);
+                                              updateSection('workExperience', updated);
+                                            }}
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          const updated = [...(resumeData.sections?.workExperience || [])];
+                                          updated[index].bullets.push('');
+                                          updateSection('workExperience', updated);
+                                        }}
+                                        className="flex items-center gap-2 text-green-600 border-green-300 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Achievement
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = [...(resumeData.sections?.workExperience || [])];
+                                      updated.splice(index, 1);
+                                      updateSection('workExperience', updated);
+                                    }}
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Text View */}
+                        {workExpViewMode === 'text' && (
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-start gap-2">
+                                <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                <div className="text-sm text-blue-800 dark:text-blue-200">
+                                  <p className="font-medium mb-1">Quick Format:</p>
+                                  <p className="mb-2">[Company Name] Job Title (Duration)</p>
+                                  <p className="mb-1">• First achievement or responsibility</p>
+                                  <p className="mb-1">• Second achievement or responsibility</p>
+                                  <p className="text-xs mt-2">Separate different jobs with empty lines</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <textarea
+                              value={convertWorkExpToText(resumeData.sections?.workExperience || [])}
+                              onChange={(e) => {
+                                const experiences = convertTextToWorkExp(e.target.value);
+                                updateSection('workExperience', experiences);
+                              }}
+                              className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:text-white resize-none font-mono text-sm"
+                              rows={15}
+                              placeholder="[Google] Senior Software Engineer (Jan 2020 - Present)&#10;• Led development of scalable microservices architecture&#10;• Improved system performance by 40% through optimization&#10;• Mentored 3 junior developers and conducted code reviews&#10;&#10;[Microsoft] Software Engineer (Jun 2018 - Dec 2019)&#10;• Developed RESTful APIs serving 1M+ daily requests&#10;• Implemented automated testing reducing bugs by 60%&#10;• Collaborated with cross-functional teams on product features"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {activeSection === 'projects' && (
+                      <div className="space-y-6">
+                        {/* Header with View Toggle */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Wrench className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                              Projects
+                            </h3>
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                              <button
+                                onClick={() => setProjectsViewMode('form')}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                                  projectsViewMode === 'form'
+                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                }`}
+                              >
+                                <FileText className="w-4 h-4" />
+                                Form View
+                              </button>
+                              <button
+                                onClick={() => setProjectsViewMode('text')}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                                  projectsViewMode === 'text'
+                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                }`}
+                              >
+                                <Edit3 className="w-4 h-4" />
+                                Text View
+                              </button>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newProject = {
+                                name: '',
+                                description: '',
+                                bullets: ['']
+                              };
+                              updateSection('projects', [...(resumeData.sections?.projects || []), newProject]);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Project
+                          </Button>
+                        </div>
+
+                        {/* Form View */}
+                        {projectsViewMode === 'form' && (
+                          <div className="space-y-4">
+                            {(resumeData.sections?.projects || []).map((project: any, index: number) => (
+                              <div key={index} className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-800">
+                                <div className="flex items-start justify-between mb-4">
+                                  <div className="flex-1">
+                                    <div className="mb-4">
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Project Name
+                                      </label>
+                                      <Input
+                                        placeholder="e.g., E-commerce Platform, Mobile App"
+                                        value={project.name || ''}
+                                        onChange={(e) => {
+                                          const updated = [...(resumeData.sections?.projects || [])];
+                                          updated[index] = { ...updated[index], name: e.target.value };
+                                          updateSection('projects', updated);
+                                        }}
+                                        className="bg-white dark:bg-gray-800 text-lg font-semibold"
+                                      />
+                                    </div>
+                                    
+                                    <div className="mb-4">
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Description
+                                      </label>
+                                      <textarea
+                                        value={project.description || ''}
+                                        onChange={(e) => {
+                                          const updated = [...(resumeData.sections?.projects || [])];
+                                          updated[index] = { ...updated[index], description: e.target.value };
+                                          updateSection('projects', updated);
+                                        }}
+                                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-800 dark:text-white resize-none bg-white"
+                                        rows={3}
+                                        placeholder="Brief description of the project, technologies used, and your role..."
+                                      />
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Key Achievements
+                                      </label>
+                                      {(project.bullets || []).map((bullet: string, bulletIndex: number) => (
+                                        <div key={bulletIndex} className="flex gap-2 items-start">
+                                          <span className="text-purple-600 dark:text-purple-400 mt-2 text-sm">•</span>
+                                          <Input
+                                            placeholder="Describe what you accomplished or built..."
+                                            value={bullet}
+                                            onChange={(e) => {
+                                              const updated = [...(resumeData.sections?.projects || [])];
+                                              updated[index].bullets[bulletIndex] = e.target.value;
+                                              updateSection('projects', updated);
+                                            }}
+                                            className="flex-1 bg-white dark:bg-gray-800"
+                                          />
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                              const updated = [...(resumeData.sections?.projects || [])];
+                                              updated[index].bullets.splice(bulletIndex, 1);
+                                              updateSection('projects', updated);
+                                            }}
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          const updated = [...(resumeData.sections?.projects || [])];
+                                          updated[index].bullets.push('');
+                                          updateSection('projects', updated);
+                                        }}
+                                        className="flex items-center gap-2 text-purple-600 border-purple-300 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                                      >
+                                        <Plus className="w-4 h-4" />
+                                        Add Achievement
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = [...(resumeData.sections?.projects || [])];
+                                      updated.splice(index, 1);
+                                      updateSection('projects', updated);
+                                    }}
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Text View */}
+                        {projectsViewMode === 'text' && (
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-start gap-2">
+                                <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                <div className="text-sm text-blue-800 dark:text-blue-200">
+                                  <p className="font-medium mb-1">Quick Format:</p>
+                                  <p className="mb-2">[Project Name] Brief description</p>
+                                  <p className="mb-1">• First accomplishment or feature</p>
+                                  <p className="mb-1">• Second accomplishment or feature</p>
+                                  <p className="text-xs mt-2">Separate different projects with empty lines</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <textarea
+                              value={convertProjectsToText(resumeData.sections?.projects || [])}
+                              onChange={(e) => {
+                                const projects = convertTextToProjects(e.target.value);
+                                updateSection('projects', projects);
+                              }}
+                              className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-800 dark:text-white resize-none font-mono text-sm"
+                              rows={15}
+                              placeholder="[E-commerce Platform] Full-stack web application built with React and Node.js&#10;• Implemented secure payment processing with Stripe API&#10;• Built responsive UI with 95% mobile compatibility&#10;• Deployed on AWS with CI/CD pipeline reducing deployment time by 70%&#10;&#10;[Mobile Weather App] Cross-platform mobile app using React Native&#10;• Integrated with OpenWeather API for real-time data&#10;• Implemented offline caching for better user experience&#10;• Achieved 4.8/5 rating on app stores with 10K+ downloads"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {activeSection === 'education' && (
+                      <div className="space-y-6">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <GraduationCap className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                              Education
+                            </h3>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newEducation = {
+                                degree: '',
+                                institution: '',
+                                year: '',
+                                gpa: ''
+                              };
+                              updateSection('education', [...(resumeData.sections?.education || []), newEducation]);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Education
+                          </Button>
+                        </div>
+
+                        {/* Education Entries */}
+                        <div className="space-y-4">
+                          {(resumeData.sections?.education || []).map((edu: any, index: number) => (
+                            <div key={index} className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-6 rounded-xl border border-orange-200 dark:border-orange-800">
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex-1">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Degree
+                                      </label>
+                                      <Input
+                                        placeholder="e.g., Bachelor of Science in Computer Science"
+                                        value={edu.degree || ''}
+                                        onChange={(e) => {
+                                          const updated = [...(resumeData.sections?.education || [])];
+                                          updated[index] = { ...updated[index], degree: e.target.value };
+                                          updateSection('education', updated);
+                                        }}
+                                        className="bg-white dark:bg-gray-800"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Institution
+                                      </label>
+                                      <Input
+                                        placeholder="e.g., Stanford University, MIT"
+                                        value={edu.institution || ''}
+                                        onChange={(e) => {
+                                          const updated = [...(resumeData.sections?.education || [])];
+                                          updated[index] = { ...updated[index], institution: e.target.value };
+                                          updateSection('education', updated);
+                                        }}
+                                        className="bg-white dark:bg-gray-800"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Year
+                                      </label>
+                                      <Input
+                                        placeholder="e.g., 2020, 2018-2022"
+                                        value={edu.year || ''}
+                                        onChange={(e) => {
+                                          const updated = [...(resumeData.sections?.education || [])];
+                                          updated[index] = { ...updated[index], year: e.target.value };
+                                          updateSection('education', updated);
+                                        }}
+                                        className="bg-white dark:bg-gray-800"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        GPA (Optional)
+                                      </label>
+                                      <Input
+                                        placeholder="e.g., 3.8/4.0, Magna Cum Laude"
+                                        value={edu.gpa || ''}
+                                        onChange={(e) => {
+                                          const updated = [...(resumeData.sections?.education || [])];
+                                          updated[index] = { ...updated[index], gpa: e.target.value };
+                                          updateSection('education', updated);
+                                        }}
+                                        className="bg-white dark:bg-gray-800"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = [...(resumeData.sections?.education || [])];
+                                    updated.splice(index, 1);
+                                    updateSection('education', updated);
+                                  }}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Help Text */}
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-start gap-2">
+                            <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                            <div className="text-sm text-blue-800 dark:text-blue-200">
+                              <p className="font-medium mb-1">Education Tips:</p>
+                              <ul className="space-y-1 text-xs">
+                                <li>• Include your highest degree first</li>
+                                <li>• Add relevant coursework or honors if applicable</li>
+                                <li>• Include graduation year or expected graduation date</li>
+                                <li>• Only include GPA if it's 3.5 or higher</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {activeSection === 'skills' && (
+                      <div className="space-y-6">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Zap className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                              Skills
+                            </h3>
+                          </div>
+                        </div>
+
+                        {/* Skills Input */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Technical Skills
+                            </label>
+                            <textarea
+                              value={(resumeData.sections?.skills || []).join(', ')}
+                              onChange={(e) => {
+                                const skills = e.target.value.split(',').map(s => s.trim()).filter(s => s);
+                                updateSection('skills', skills);
+                              }}
+                              className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 dark:bg-gray-800 dark:text-white resize-none bg-white"
+                              rows={6}
+                              placeholder="JavaScript, React, Node.js, Python, Machine Learning, AWS, Docker, Git, SQL, MongoDB, TypeScript, GraphQL, REST APIs, Agile, Scrum..."
+                            />
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
+                              <Lightbulb className="w-4 h-4" />
+                              Separate multiple skills with commas. Include programming languages, frameworks, tools, and methodologies.
+                            </p>
+                          </div>
+
+                          {/* Skills Preview */}
+                          {(resumeData.sections?.skills || []).length > 0 && (
+                            <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 p-4 rounded-lg border border-pink-200 dark:border-pink-800">
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                Skills Preview:
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {(resumeData.sections?.skills || []).map((skill: string, index: number) => (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Skills Tips */}
+                          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-start gap-2">
+                              <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                              <div className="text-sm text-blue-800 dark:text-blue-200">
+                                <p className="font-medium mb-2">Skills Tips:</p>
+                                <ul className="space-y-1 text-xs">
+                                  <li>• <strong>Programming Languages:</strong> JavaScript, Python, Java, C++, Go</li>
+                                  <li>• <strong>Frameworks:</strong> React, Angular, Vue.js, Django, Spring</li>
+                                  <li>• <strong>Tools:</strong> Git, Docker, AWS, Jenkins, Kubernetes</li>
+                                  <li>• <strong>Databases:</strong> MySQL, PostgreSQL, MongoDB, Redis</li>
+                                  <li>• <strong>Soft Skills:</strong> Leadership, Communication, Problem Solving</li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Preview Panel */}
+            {showPreview && (
+              <div className="w-1/2">
+                <Card variant="elevated" padding="lg" className="h-full">
+                  <div className="h-full overflow-y-auto">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      Live Preview
+                    </h3>
+                    <div className="prose dark:prose-invert max-w-none">
+                      {/* Preview content will go here */}
+                      <p className="text-gray-600 dark:text-gray-400">
+                        Preview will be implemented here...
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* AI Panel Overlay */}
+      {showAIPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card variant="elevated" padding="lg" className="w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Bot className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  AI Resume Enhancement
+                </h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAIPanel(false)}
+                className="p-2"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Job Description (Optional)
+                </label>
+                <textarea
+                  value={jobDescription}
+                  onChange={(e) => updateJobDescription(e.target.value)}
+                  className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-800 dark:text-white resize-none"
+                  rows={4}
+                  placeholder="Paste the job description here for AI-powered enhancements..."
+                />
+              </div>
+
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="primary"
+                  onClick={handleStartAIEnhancement}
+                  disabled={!canStartEnhancement || aiProcessing}
+                  loading={aiProcessing}
+                  className="flex items-center gap-2"
+                >
+                  {aiProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+                  {aiProcessing ? 'Processing...' : 'Enhance Resume'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAIPanel(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </PageLayout>
   );
 };

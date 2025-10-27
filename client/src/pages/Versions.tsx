@@ -9,6 +9,26 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { VersionService, ExportService, Version } from '../services';
+import { 
+  Search, 
+  Grid3X3, 
+  List, 
+  FileText, 
+  FileDown, 
+  Edit3, 
+  Trash2, 
+  Upload, 
+  Plus, 
+  AlertTriangle, 
+  RefreshCw,
+  Target,
+  Zap,
+  Download,
+  Clock,
+  Building2,
+  Briefcase,
+  Sparkles
+} from 'lucide-react';
 
 const Versions: React.FC = () => {
   const [versions, setVersions] = useState<Version[]>([]);
@@ -120,7 +140,7 @@ const Versions: React.FC = () => {
       <PageLayout title="Loading Versions...">
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+            <RefreshCw className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading saved versions...</p>
           </div>
         </div>
@@ -175,13 +195,15 @@ const Versions: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-3 items-center mb-6">
             {/* Search */}
             <div className="flex-1 max-w-md">
-              <Input
-                placeholder="Search versions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                leftIcon="🔍"
-                className="w-full"
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search versions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10"
+                />
+              </div>
             </div>
 
             {/* Sort */}
@@ -210,7 +232,7 @@ const Versions: React.FC = () => {
                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
               >
-                ⊞
+                <Grid3X3 className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
@@ -220,7 +242,7 @@ const Versions: React.FC = () => {
                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
               >
-                ☰
+                <List className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -229,7 +251,7 @@ const Versions: React.FC = () => {
         {error && (
           <Card variant="elevated" padding="lg" className="border-error-200 bg-error-50">
             <div className="flex items-center gap-3">
-              <span className="text-error-600 text-2xl">⚠️</span>
+              <AlertTriangle className="w-6 h-6 text-error-600" />
               <div>
                 <h3 className="text-error-800 font-semibold">Error Loading Versions</h3>
                 <p className="text-error-600">{error}</p>
@@ -238,8 +260,9 @@ const Versions: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={fetchVersions}
-                className="ml-auto border-error-300 text-error-700 hover:bg-error-100"
+                className="ml-auto border-error-300 text-error-700 hover:bg-error-100 flex items-center gap-2"
               >
+                <RefreshCw className="w-4 h-4" />
                 Retry
               </Button>
             </div>
@@ -251,7 +274,7 @@ const Versions: React.FC = () => {
           <div className="text-center py-20">
             <div className="max-w-2xl mx-auto">
               <div className="w-32 h-32 bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
-                <span className="text-6xl">📄</span>
+                <FileText className="w-16 h-16 text-primary-600 dark:text-primary-400" />
               </div>
               <h3 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
                 Ready to Build Your Resume Collection?
@@ -265,21 +288,27 @@ const Versions: React.FC = () => {
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">How it works:</h4>
                 <div className="grid md:grid-cols-3 gap-4 text-left">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                    <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center">
+                      <Upload className="w-4 h-4" />
+                    </div>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">Upload Resume</div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">Upload your existing resume</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                    <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center">
+                      <Target className="w-4 h-4" />
+                    </div>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">Customize</div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">AI helps tailor for each company</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                    <div className="w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center">
+                      <Download className="w-4 h-4" />
+                    </div>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">Export & Apply</div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">Download in Word or PDF format</div>
@@ -293,17 +322,19 @@ const Versions: React.FC = () => {
                   variant="primary"
                   size="lg"
                   onClick={() => navigate('/')}
-                  className="px-10 py-4 text-lg font-semibold"
+                  className="px-10 py-4 text-lg font-semibold flex items-center gap-2"
                 >
-                  🚀 Upload Your Resume
+                  <Upload className="w-5 h-5" />
+                  Upload Your Resume
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
                   onClick={() => navigate('/editor')}
-                  className="px-10 py-4 text-lg font-semibold"
+                  className="px-10 py-4 text-lg font-semibold flex items-center gap-2"
                 >
-                  📝 Start from Scratch
+                  <FileText className="w-5 h-5" />
+                  Start from Scratch
                 </Button>
               </div>
             </div>
@@ -366,7 +397,7 @@ const Versions: React.FC = () => {
                         onClick={() => handleDeleteVersion(version.id)}
                         className="text-gray-400 hover:text-error-600 opacity-0 group-hover:opacity-100 transition-opacity p-2"
                       >
-                        🗑️
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
 
@@ -375,9 +406,10 @@ const Versions: React.FC = () => {
                         variant="primary"
                         size="sm"
                         onClick={() => handleLoadVersion(version)}
-                        className="w-full text-sm font-medium py-2"
+                        className="w-full text-sm font-medium py-2 flex items-center gap-2"
                       >
-                        ✏️ Edit Resume
+                        <Edit3 className="w-4 h-4" />
+                        Edit Resume
                       </Button>
 
                       <div className="flex gap-2">
@@ -387,9 +419,10 @@ const Versions: React.FC = () => {
                           onClick={() => handleExportVersion(version, 'pdf')}
                           disabled={exporting === version.id}
                           loading={exporting === version.id}
-                          className="flex-1 text-sm py-2 border-primary-200 text-primary-700 hover:bg-primary-50"
+                          className="flex-1 text-sm py-2 border-primary-200 text-primary-700 hover:bg-primary-50 flex items-center gap-2"
                         >
-                          📄 PDF
+                          <FileDown className="w-4 h-4" />
+                          PDF
                         </Button>
                         <Button
                           variant="outline"
@@ -397,9 +430,10 @@ const Versions: React.FC = () => {
                           onClick={() => handleExportVersion(version, 'word')}
                           disabled={exporting === version.id}
                           loading={exporting === version.id}
-                          className="flex-1 text-sm py-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          className="flex-1 text-sm py-2 border-blue-200 text-blue-700 hover:bg-blue-50 flex items-center gap-2"
                         >
-                          📝 Word
+                          <FileText className="w-4 h-4" />
+                          Word
                         </Button>
                       </div>
                     </div>
@@ -434,7 +468,9 @@ const Versions: React.FC = () => {
                         variant="primary"
                         size="sm"
                         onClick={() => handleLoadVersion(version)}
+                        className="flex items-center gap-2"
                       >
+                        <Edit3 className="w-4 h-4" />
                         Edit
                       </Button>
                       <Button
@@ -443,7 +479,9 @@ const Versions: React.FC = () => {
                         onClick={() => handleExportVersion(version, 'word')}
                         disabled={exporting === version.id}
                         loading={exporting === version.id}
+                        className="flex items-center gap-2"
                       >
+                        <FileText className="w-4 h-4" />
                         Word
                       </Button>
                       <Button
@@ -452,7 +490,9 @@ const Versions: React.FC = () => {
                         onClick={() => handleExportVersion(version, 'pdf')}
                         disabled={exporting === version.id}
                         loading={exporting === version.id}
+                        className="flex items-center gap-2"
                       >
+                        <FileDown className="w-4 h-4" />
                         PDF
                       </Button>
                       <Button
@@ -461,7 +501,7 @@ const Versions: React.FC = () => {
                         onClick={() => handleDeleteVersion(version.id)}
                         className="text-gray-400 hover:text-error-600"
                       >
-                        🗑️
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </>
@@ -474,7 +514,7 @@ const Versions: React.FC = () => {
         {/* No Results */}
         {versions.length > 0 && filteredVersions.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
+            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No versions found
             </h3>
@@ -484,7 +524,9 @@ const Versions: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => setSearchQuery('')}
+              className="flex items-center gap-2"
             >
+              <RefreshCw className="w-4 h-4" />
               Clear Search
             </Button>
           </div>
@@ -506,17 +548,19 @@ const Versions: React.FC = () => {
                 variant="primary"
                 size="lg"
                 onClick={() => navigate('/editor')}
-                className="px-8 py-3 text-lg font-semibold"
+                className="px-8 py-3 text-lg font-semibold flex items-center gap-2"
               >
-                ✨ Create New Version
+                <Sparkles className="w-5 h-5" />
+                Create New Version
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 onClick={() => navigate('/')}
-                className="px-8 py-3 text-lg font-semibold"
+                className="px-8 py-3 text-lg font-semibold flex items-center gap-2"
               >
-                📤 Upload Another Resume
+                <Upload className="w-5 h-5" />
+                Upload Another Resume
               </Button>
             </div>
           </div>

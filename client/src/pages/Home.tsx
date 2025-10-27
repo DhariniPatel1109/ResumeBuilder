@@ -8,6 +8,19 @@ import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import FileUpload from '../components/forms/FileUpload';
+import { 
+  Target, 
+  FileText, 
+  Zap, 
+  Upload, 
+  Bot, 
+  Edit3, 
+  Download, 
+  ArrowRight,
+  Sparkles,
+  CheckCircle,
+  ArrowDown
+} from 'lucide-react';
 
 const Home: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
@@ -36,7 +49,7 @@ const Home: React.FC = () => {
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             {/* Badge */}
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium mb-8">
-              <span className="w-2 h-2 bg-primary-500 rounded-full mr-2 animate-pulse"></span>
+              <Sparkles className="w-3 h-3 mr-2" />
               AI-Powered Resume Builder
             </div>
 
@@ -57,10 +70,11 @@ const Home: React.FC = () => {
               <Button
                 variant="outline"
                 size="xl"
-                className="px-8 py-4 text-lg font-semibold"
+                className="px-8 py-4 text-lg font-semibold flex items-center gap-2"
                 onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Learn How It Works
+                <ArrowDown className="w-5 h-5" />
               </Button>
             </div>
 
@@ -97,8 +111,8 @@ const Home: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Feature 1 */}
               <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
-                  🎯
+                <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
+                  <Target className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                   AI-Powered Targeting
@@ -110,8 +124,8 @@ const Home: React.FC = () => {
 
               {/* Feature 2 */}
               <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200">
-                <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
-                  📄
+                <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
+                  <FileText className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                   Format Preservation
@@ -123,8 +137,8 @@ const Home: React.FC = () => {
 
               {/* Feature 3 */}
               <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200">
-                <div className="w-16 h-16 bg-gradient-to-r from-success-500 to-success-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
-                  ⚡
+                <div className="w-16 h-16 bg-gradient-to-r from-success-500 to-success-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
+                  <Zap className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                   Lightning Fast
@@ -155,33 +169,37 @@ const Home: React.FC = () => {
                   step: '01',
                   title: 'Upload Resume',
                   description: 'Upload your existing resume in any format',
-                  icon: '📤'
+                  icon: Upload
                 },
                 {
                   step: '02', 
                   title: 'AI Analysis',
                   description: 'Our AI parses and structures your content',
-                  icon: '🤖'
+                  icon: Bot
                 },
                 {
                   step: '03',
                   title: 'Customize',
                   description: 'Edit content to match job requirements',
-                  icon: '✏️'
+                  icon: Edit3
                 },
                 {
                   step: '04',
                   title: 'Export',
                   description: 'Download your customized resume',
-                  icon: '💾'
+                  icon: Download
                 }
-              ].map((item, index) => (
-                <div key={index} className="relative">
+              ].map((item, index) => {
+                const IconComponent = item.icon;
+                return (
+                  <div key={index} className="relative">
                   <Card variant="elevated" padding="lg" className="text-center h-full">
                     <div className="text-6xl font-bold text-primary-500 dark:text-primary-400 mb-4">
                       {item.step}
                     </div>
-                    <div className="text-4xl mb-4">{item.icon}</div>
+                    <div className="flex justify-center mb-4">
+                      <IconComponent className="w-12 h-12 text-primary-600 dark:text-primary-400" />
+                    </div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                       {item.title}
                     </h3>
@@ -194,14 +212,13 @@ const Home: React.FC = () => {
                   {index < 3 && (
                     <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
                       <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+                        <ArrowRight className="w-4 h-4 text-white" />
                       </div>
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -218,9 +235,10 @@ const Home: React.FC = () => {
             <Button
               size="xl"
               variant="outline"
-              className="bg-white text-primary-600 hover:bg-gray-50 border-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200"
+              className="bg-white text-primary-600 hover:bg-gray-50 border-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 flex items-center gap-2"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
+              <Upload className="w-5 h-5" />
               Start by Uploading Your Resume
             </Button>
           </div>
