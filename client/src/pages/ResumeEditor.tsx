@@ -3,13 +3,12 @@
  */
 
 import React, { useState } from 'react';
-import SectionManager from '../components/SectionManager';
+import SectionManager from '../components/forms/SectionManager';
 import EditorActions from '../components/EditorActions';
-import AIEnhancementWorkflow from '../components/ai/AIEnhancementWorkflow';
+import AIEnhancementWorkflow from '../components/ai/ui/AIEnhancementWorkflow';
 import { useResumeData } from '../hooks/useResumeData';
 import { useAIEnhancement } from '../hooks/useAIEnhancement';
 import PageLayout from '../components/layout/PageLayout';
-import './ResumeEditor.css';
 
 const ResumeEditor: React.FC = () => {
   // Resume data management

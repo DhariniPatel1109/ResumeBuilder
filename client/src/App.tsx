@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './theme/ThemeProvider';
-import Header from './components/Header';
+import Header from './components/navigation/Header';
 import Home from './pages/Home';
 import ResumeEditor from './pages/ResumeEditor';
 import Versions from './pages/Versions';

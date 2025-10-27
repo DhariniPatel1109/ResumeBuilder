@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { DynamicSection } from '../types';
-import './DynamicSectionEditor.css';
+import { DynamicSection } from '../../../types';
 
 interface DynamicSectionEditorProps {
   sectionName: string;

@@ -4,9 +4,9 @@
 
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
-import Button from './ui/Button';
-import Card from './ui/Card';
-import { API_ENDPOINTS } from '../config/api';
+import Button from '../ui/Button';
+import Card from '../ui/Card';
+import { API_ENDPOINTS } from '../../config/api';
 
 interface FileUploadProps {
   onUploadSuccess: (data: any) => void;
@@ -108,8 +108,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
         padding="lg"
         className={`relative transition-all duration-200 ${
           dragActive 
-            ? 'border-primary-500 bg-primary-50' 
-            : 'border-gray-200 hover:border-primary-300'
+            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
+            : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
         }`}
       >
         <div
@@ -133,10 +133,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
             <div className="space-y-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   Processing Resume...
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   Please wait while we parse your resume
                 </p>
               </div>
@@ -148,10 +148,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   {dragActive ? 'Drop your resume here' : 'Upload Resume'}
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   Drag and drop your resume file here, or click to browse
                 </p>
                 
@@ -164,7 +164,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 </Button>
               </div>
 
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 <p>Supported formats: .docx, .doc, .pdf</p>
                 <p>Maximum file size: 10MB</p>
               </div>

@@ -5,8 +5,8 @@
 
 import React from 'react';
 import SectionEditor from './SectionEditor';
-import DynamicResumeRenderer from './DynamicResumeRenderer';
-import { ResumeData } from '../types';
+import DynamicResumeRenderer from '../ai/resume/DynamicResumeRenderer';
+import { ResumeData } from '../../types';
 
 interface SectionManagerProps {
   resumeData: ResumeData | null;

@@ -4,8 +4,8 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import Button from './ui/Button';
-import { useTheme } from '../theme/ThemeProvider';
+import Button from '../ui/Button';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -18,13 +18,13 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center space-x-2 text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors"
+            className="flex items-center space-x-2 text-2xl font-bold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
             <span className="text-3xl">📄</span>
             <span>ResumeBuilder</span>
@@ -38,8 +38,8 @@ const Header: React.FC = () => {
                 to={item.path}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   location.pathname === item.path
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 {item.label}
@@ -75,7 +75,7 @@ const Header: React.FC = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden border-t border-gray-200 py-4">
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
           <nav className="flex flex-col space-y-2">
             {navItems.map((item) => (
               <Link
@@ -83,14 +83,14 @@ const Header: React.FC = () => {
                 to={item.path}
                 className={`px-3 py-2 rounded-md text-base font-medium transition-colors ${
                   location.pathname === item.path
-                    ? 'bg-primary-100 text-primary-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 {item.label}
               </Link>
             ))}
-            <div className="pt-2 border-t border-gray-200">
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
               <Button
                 variant="ghost"
                 size="sm"

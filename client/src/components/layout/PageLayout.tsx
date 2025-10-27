@@ -13,6 +13,7 @@ interface PageLayoutProps {
   headerActions?: React.ReactNode;
   breadcrumbs?: Array<{ label: string; href?: string }>;
   className?: string;
+  hideHeader?: boolean;
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({
@@ -21,14 +22,15 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   subtitle,
   headerActions,
   breadcrumbs,
-  className = ''
+  className = '',
+  hideHeader = false
 }) => {
   const { theme, isDark, toggleTheme } = useTheme();
 
   return (
     <div className={`min-h-screen bg-gray-50 ${className}`}>
       {/* Header */}
-      {(title || headerActions || breadcrumbs) && (
+      {!hideHeader && (title || headerActions || breadcrumbs) && (
         <header className="bg-white border-b border-gray-200 shadow-sm">
           <div className={theme.layout.container.base}>
             <div className="py-6">

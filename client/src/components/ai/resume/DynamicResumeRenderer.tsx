@@ -4,8 +4,7 @@
  */
 
 import React from 'react';
-import { ResumeSection } from '../types';
-import './DynamicResumeRenderer.css';
+import { ResumeSection } from '../../../types';
 
 interface DynamicResumeRendererProps {
   sections: ResumeSection;

@@ -4,12 +4,12 @@
  */
 
 import React, { useState } from 'react';
-import JobDescriptionInput from './JobDescriptionInput';
+import JobDescriptionInput from '../../forms/JobDescriptionInput';
 import AIEnhancementToggle from './AIEnhancementToggle';
 import AIProcessingIndicator from './AIProcessingIndicator';
-import AISuggestionsReview from './AISuggestionsReview';
-import { useAIEnhancement } from '../../hooks/useAIEnhancement';
-import { ResumeData } from '../../types';
+import AISuggestionsReview from '../suggestions/AISuggestionsReview';
+import { useAIEnhancement } from '../../../hooks/useAIEnhancement';
+import { ResumeData } from '../../../types';
 
 interface AIEnhancementWorkflowProps {
   resumeData: ResumeData | null;

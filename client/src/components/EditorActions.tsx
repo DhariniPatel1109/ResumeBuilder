@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import ExportButtons from './ExportButtons';
+import ExportButtons from './ui/buttons/ExportButtons';
 
 interface EditorActionsProps {
   companyName: string;

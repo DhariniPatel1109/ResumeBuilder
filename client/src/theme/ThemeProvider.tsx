@@ -20,17 +20,22 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(false); // Default to light theme
   const [customTheme, setCustomTheme] = useState<Theme>(theme);
 
   // Load theme preference from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('resume-builder-theme');
     if (savedTheme) {
-      const { isDark: savedIsDark, customTheme: savedCustomTheme } = JSON.parse(savedTheme);
-      setIsDark(savedIsDark);
-      if (savedCustomTheme) {
-        setCustomTheme({ ...theme, ...savedCustomTheme });
+      try {
+        const { isDark: savedIsDark, customTheme: savedCustomTheme } = JSON.parse(savedTheme);
+        setIsDark(savedIsDark || false); // Default to false if invalid
+        if (savedCustomTheme) {
+          setCustomTheme({ ...theme, ...savedCustomTheme });
+        }
+      } catch (error) {
+        console.warn('Failed to parse saved theme, using default light theme');
+        setIsDark(false);
       }
     }
   }, []);
@@ -44,6 +49,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [isDark, customTheme]);
 
   const toggleTheme = () => {
+    console.log('Theme toggle clicked, current isDark:', isDark);
     setIsDark(!isDark);
   };
 
@@ -57,6 +63,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     toggleTheme,
     setTheme,
   };
+
+  // Debug theme state
+  useEffect(() => {
+    console.log('Theme state changed:', { isDark, darkClass: isDark ? 'dark' : '' });
+  }, [isDark]);
 
   return (
     <ThemeContext.Provider value={value}>
