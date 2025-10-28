@@ -237,7 +237,7 @@ const Versions: React.FC = () => {
         )}
         {/* Error State */}
         {error && (
-          <Card variant="elevated" padding="lg" className="border-error-200 dark:border-error-800 bg-error-50 dark:bg-error-900/20">
+          <Card variant="elevated" padding="lg" className="border-error-200 dark:border-error-800 bg-error-50 dark:bg-error-900/20 bg-white dark:bg-gray-800">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-6 h-6 text-error-600 dark:text-error-400" />
               <div>
@@ -340,7 +340,7 @@ const Versions: React.FC = () => {
                 key={version.id} 
                 variant="elevated" 
                 padding="lg" 
-                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
+                className={`group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white dark:bg-gray-800 ${
                   viewMode === 'list' ? 'flex items-center justify-between' : ''
                 }`}
               >

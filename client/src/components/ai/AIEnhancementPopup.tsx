@@ -257,7 +257,7 @@ const AIEnhancementPopup: React.FC<AIEnhancementPopupProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card variant="elevated" className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+      <Card variant="elevated" className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white dark:bg-gray-800">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">

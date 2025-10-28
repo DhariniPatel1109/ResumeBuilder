@@ -207,8 +207,8 @@ const ResumeEditor: React.FC = () => {
       <PageLayout title="Loading...">
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading resume data...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 dark:border-primary-400 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Loading resume data...</p>
           </div>
         </div>
       </PageLayout>
@@ -220,7 +220,7 @@ const ResumeEditor: React.FC = () => {
       <div className={`flex h-[calc(100vh-60px)] ${sidebarCollapsed ? 'gap-2' : 'gap-6'}`}>
         {/* Sidebar Navigation */}
         <div className={`${sidebarCollapsed ? 'w-24' : 'w-80'} transition-all duration-300 flex-shrink-0`}>
-          <Card variant="elevated" className="h-full flex flex-col p-2">
+          <Card variant="elevated" className="h-full flex flex-col p-2 bg-white dark:bg-gray-800">
             <div className="border-b border-gray-200 dark:border-gray-700 pb-3 mb-3">
               <div className="flex items-center justify-between">
                 <h3 className={`font-semibold text-gray-900 dark:text-white ${sidebarCollapsed ? 'hidden' : 'block'}`}>
@@ -247,7 +247,7 @@ const ResumeEditor: React.FC = () => {
                     className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2' : 'gap-3 p-3'} rounded-lg transition-all duration-200 ${
                       activeSection === section.id
                         ? `bg-${section.color}-100 dark:bg-${section.color}-900/30 text-${section.color}-700 dark:text-${section.color}-300 border border-${section.color}-200 dark:border-${section.color}-700`
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}
                     title={sidebarCollapsed ? section.title : undefined}
                   >
@@ -332,7 +332,7 @@ const ResumeEditor: React.FC = () => {
           <div className="flex-1 flex gap-6">
             {/* Editor Panel */}
             <div className={`${showPreview ? 'w-1/2' : 'w-full'} transition-all duration-300 min-h-0`}>
-              <Card variant="elevated" padding="lg" className="h-full flex flex-col">
+              <Card variant="elevated" padding="lg" className="h-full flex flex-col bg-white dark:bg-gray-800">
                 <div className="flex-1 overflow-y-auto">
                   {/* Section Content will go here */}
                   <div className="space-y-6">
@@ -353,13 +353,13 @@ const ResumeEditor: React.FC = () => {
                         {/* Header with View Toggle */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                               <button
                                 onClick={() => setWorkExpViewMode('form')}
                                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
                                   workExpViewMode === 'form'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                                 }`}
                               >
                                 <FileText className="w-4 h-4" />
@@ -369,8 +369,8 @@ const ResumeEditor: React.FC = () => {
                                 onClick={() => setWorkExpViewMode('text')}
                                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
                                   workExpViewMode === 'text'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                                 }`}
                               >
                                 <Edit3 className="w-4 h-4" />
@@ -477,7 +477,7 @@ const ResumeEditor: React.FC = () => {
                                               updated[index].bullets.splice(bulletIndex, 1);
                                               updateSection('workExperience', updated);
                                             }}
-                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 p-2"
                                           >
                                             <Trash2 className="w-4 h-4" />
                                           </Button>
@@ -491,7 +491,7 @@ const ResumeEditor: React.FC = () => {
                                           updated[index].bullets.push('');
                                           updateSection('workExperience', updated);
                                         }}
-                                        className="flex items-center gap-2 text-green-600 border-green-300 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20"
+                                        className="flex items-center gap-2 text-green-600 border-green-300 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300"
                                       >
                                         <Plus className="w-4 h-4" />
                                         Add Achievement
@@ -552,13 +552,13 @@ const ResumeEditor: React.FC = () => {
                         {/* Header with View Toggle */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                               <button
                                 onClick={() => setProjectsViewMode('form')}
                                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
                                   projectsViewMode === 'form'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                                 }`}
                               >
                                 <FileText className="w-4 h-4" />
@@ -568,8 +568,8 @@ const ResumeEditor: React.FC = () => {
                                 onClick={() => setProjectsViewMode('text')}
                                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
                                   projectsViewMode === 'text'
-                                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
                                 }`}
                               >
                                 <Edit3 className="w-4 h-4" />
@@ -660,7 +660,7 @@ const ResumeEditor: React.FC = () => {
                                               updated[index].bullets.splice(bulletIndex, 1);
                                               updateSection('projects', updated);
                                             }}
-                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 p-2"
                                           >
                                             <Trash2 className="w-4 h-4" />
                                           </Button>
@@ -674,7 +674,7 @@ const ResumeEditor: React.FC = () => {
                                           updated[index].bullets.push('');
                                           updateSection('projects', updated);
                                         }}
-                                        className="flex items-center gap-2 text-purple-600 border-purple-300 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                                        className="flex items-center gap-2 text-purple-600 border-purple-300 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300"
                                       >
                                         <Plus className="w-4 h-4" />
                                         Add Achievement
@@ -953,7 +953,7 @@ const ResumeEditor: React.FC = () => {
             {/* Preview Panel */}
             {showPreview && (
               <div className="w-1/2">
-                <Card variant="elevated" padding="lg" className="h-full">
+                <Card variant="elevated" padding="lg" className="h-full bg-white dark:bg-gray-800">
                   <div className="h-full overflow-y-auto">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                       Live Preview
@@ -976,9 +976,9 @@ const ResumeEditor: React.FC = () => {
       <AIEnhancementPopup
         isOpen={showAIPopup}
         onClose={() => setShowAIPopup(false)}
-          resumeData={resumeData}
-          onApplySuggestions={handleApplyAISuggestions}
-        />
+        resumeData={resumeData}
+        onApplySuggestions={handleApplyAISuggestions}
+      />
 
       {/* Company Name Modal */}
       {showCompanyModal && (
@@ -990,7 +990,7 @@ const ResumeEditor: React.FC = () => {
               </h3>
               <button
                 onClick={() => setShowCompanyModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               >
                 <X className="w-5 h-5" />
               </button>

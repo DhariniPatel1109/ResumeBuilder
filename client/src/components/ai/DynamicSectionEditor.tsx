@@ -310,7 +310,7 @@ const DynamicSectionEditor: React.FC<DynamicSectionEditorProps> = ({
   };
 
   return (
-    <Card variant="elevated" padding="lg" className="mb-4">
+    <Card variant="elevated" padding="lg" className="mb-4 bg-white dark:bg-gray-800">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -345,7 +345,7 @@ const DynamicSectionEditor: React.FC<DynamicSectionEditorProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={onDelete}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
