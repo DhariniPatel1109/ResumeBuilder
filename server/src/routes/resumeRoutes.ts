@@ -12,6 +12,9 @@ router.post('/save-version', ResumeController.saveVersion);
 // Get all saved versions
 router.get('/versions', ResumeController.getVersions);
 
+// Update a version's company name
+router.put('/versions/:id/company-name', ResumeController.updateVersionCompanyName);
+
 // Delete a version
 router.delete('/versions/:id', ResumeController.deleteVersion);
 

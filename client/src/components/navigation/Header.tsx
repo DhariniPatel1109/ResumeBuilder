@@ -15,7 +15,9 @@ const Header: React.FC = () => {
   const navItems = [
     { path: '/', label: 'Home' },
     { path: '/editor', label: 'Editor' },
-    { path: '/versions', label: 'Versions' }
+    { path: '/versions', label: 'Versions' },
+    { path: '/template', label: 'Template' },
+    { path: '/document-modification', label: 'Document Tool' }
   ];
 
   return (

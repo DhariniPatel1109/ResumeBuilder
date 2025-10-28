@@ -32,6 +32,7 @@ export interface SavedVersion {
   companyName: string;
   sections: ResumeSection;
   createdAt: string;
+  updatedAt?: string;
   // Document reference for format preservation
   originalDocument?: {
     fileName: string;

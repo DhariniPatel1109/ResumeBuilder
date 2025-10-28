@@ -109,6 +109,33 @@ class VersionService {
   }
 
   /**
+   * Update a version's company name
+   */
+  async updateVersionCompanyName(versionId: string, companyName: string): Promise<boolean> {
+    try {
+      console.log('📝 Updating company name for version:', versionId);
+      
+      const response = await axios.put(`${API_ENDPOINTS.UPDATE_VERSION_COMPANY_NAME}/${versionId}/company-name`, {
+        companyName: companyName.trim()
+      });
+
+      if (response.data.success) {
+        console.log('✅ Company name updated successfully:', response.data);
+        return true;
+      } else {
+        throw new Error(response.data.error || 'Failed to update company name');
+      }
+    } catch (error) {
+      console.error('❌ Error updating company name:', error);
+      throw new Error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to update company name. Please try again.'
+      );
+    }
+  }
+
+  /**
    * Delete a version
    */
   async deleteVersion(versionId: string): Promise<boolean> {

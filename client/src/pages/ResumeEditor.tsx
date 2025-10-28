@@ -127,14 +127,18 @@ const ResumeEditor: React.FC = () => {
   const handleCompanySubmit = async () => {
     if (!tempCompanyName.trim()) return;
     
-    setCompanyName(tempCompanyName.trim());
+    const trimmedCompanyName = tempCompanyName.trim();
+    setCompanyName(trimmedCompanyName);
     setShowCompanyModal(false);
     
-    if (pendingAction === 'save') {
-      await saveVersion();
-    } else if (pendingAction === 'export' && exportFormat) {
-      await exportResume(exportFormat);
-    }
+    // Use setTimeout to ensure state is updated before calling saveVersion
+    setTimeout(async () => {
+      if (pendingAction === 'save') {
+        await saveVersion();
+      } else if (pendingAction === 'export' && exportFormat) {
+        await exportResume(exportFormat);
+      }
+    }, 0);
     
     setPendingAction(null);
     setExportFormat(null);
@@ -874,7 +878,26 @@ const ResumeEditor: React.FC = () => {
                               Technical Skills
                             </label>
                             <textarea
-                              value={(resumeData.sections?.skills || []).join(', ')}
+                              value={(() => {
+                                const skills = resumeData.sections?.skills;
+                                if (Array.isArray(skills)) {
+                                  return skills.join(', ');
+                                } else if (typeof skills === 'string') {
+                                  return skills;
+                                } else if (skills && typeof skills === 'object') {
+                                  // If it's an object with nested categories, flatten all values
+                                  const allSkills: string[] = [];
+                                  Object.values(skills).forEach(category => {
+                                    if (Array.isArray(category)) {
+                                      allSkills.push(...category);
+                                    } else if (typeof category === 'string') {
+                                      allSkills.push(category);
+                                    }
+                                  });
+                                  return allSkills.join(', ');
+                                }
+                                return '';
+                              })()}
                               onChange={(e) => {
                                 const skills = e.target.value.split(',').map(s => s.trim()).filter(s => s);
                                 updateSection('skills', skills);

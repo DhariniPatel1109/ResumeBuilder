@@ -6,6 +6,9 @@ import path from 'path';
 import fs from 'fs-extra';
 import resumeRoutes from './routes/resumeRoutes';
 import aiRoutes from './routes/aiRoutes';
+import docModificationRoutes from './routes/docModificationRoutes';
+import pdfModificationRoutes from './routes/pdfModificationRoutes';
+import templateRoutes from './routes/templateRoutes';
 import { ErrorHandler } from './middleware/errorHandler';
 import { config } from './config';
 import { env } from './config/env';
@@ -50,6 +53,9 @@ ensureDirectories();
 // API routes
 app.use('/api', resumeRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/doc', docModificationRoutes);
+app.use('/api/pdf', pdfModificationRoutes);
+app.use('/api/template', templateRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

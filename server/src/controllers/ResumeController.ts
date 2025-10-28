@@ -169,6 +169,51 @@ export class ResumeController {
   }
 
   /**
+   * Update a version's company name
+   */
+  static async updateVersionCompanyName(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { companyName } = req.body;
+      
+      logger.apiRequest('PUT', `/api/versions/${id}/company-name`, { versionId: id, companyName });
+      
+      if (!id) {
+        res.status(400).json({ success: false, error: 'Version ID is required' });
+        return;
+      }
+      
+      if (!companyName || !companyName.trim()) {
+        res.status(400).json({ success: false, error: 'Company name is required' });
+        return;
+      }
+      
+      const updated = await VersionManager.updateVersionCompanyName(id, companyName.trim());
+      
+      if (!updated) {
+        logger.warn('Version not found for company name update', { versionId: id }, 'ResumeController');
+        res.status(404).json({ success: false, error: 'Version not found' });
+        return;
+      }
+      
+      logger.info('Version company name updated successfully', { versionId: id, newCompanyName: companyName.trim() }, 'ResumeController');
+      const response: ApiResponse = { success: true, message: 'Company name updated successfully' };
+      res.json(response);
+      
+    } catch (error) {
+      logger.error('Update version company name error', { 
+        error: error instanceof Error ? error.message : 'Unknown error', 
+        versionId: req.params.id 
+      }, 'ResumeController');
+      const response: ApiResponse = { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to update company name' 
+      };
+      res.status(500).json(response);
+    }
+  }
+
+  /**
    * Delete a version
    */
   static async deleteVersion(req: Request, res: Response): Promise<void> {

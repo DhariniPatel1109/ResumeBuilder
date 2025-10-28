@@ -22,7 +22,8 @@ import {
   RefreshCw,
   Target,
   Download,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react';
 
 const Versions: React.FC = () => {
@@ -34,6 +35,10 @@ const Versions: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'company' | 'lastModified' | 'mostExperiences'>('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [editingVersion, setEditingVersion] = useState<Version | null>(null);
+  const [editCompanyName, setEditCompanyName] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,6 +129,45 @@ const Versions: React.FC = () => {
       console.error('Delete error:', error);
       alert('Failed to delete version. Please try again.');
     }
+  };
+
+  const handleEditCompanyName = (version: Version) => {
+    setEditingVersion(version);
+    setEditCompanyName(version.companyName);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateCompanyName = async () => {
+    if (!editingVersion || !editCompanyName.trim()) {
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      await VersionService.updateVersionCompanyName(editingVersion.id, editCompanyName.trim());
+      
+      // Update the local state
+      setVersions(versions.map(v => 
+        v.id === editingVersion.id 
+          ? { ...v, companyName: editCompanyName.trim() }
+          : v
+      ));
+      
+      setShowEditModal(false);
+      setEditingVersion(null);
+      setEditCompanyName('');
+    } catch (error) {
+      console.error('Update company name error:', error);
+      alert('Failed to update company name. Please try again.');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditModal(false);
+    setEditingVersion(null);
+    setEditCompanyName('');
   };
 
   const getVersionStats = () => {
@@ -400,6 +444,16 @@ const Versions: React.FC = () => {
                         Edit Resume
                       </Button>
 
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditCompanyName(version)}
+                        className="w-full text-sm py-2 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2"
+                      >
+                        <Target className="w-4 h-4" />
+                        Edit Company
+                      </Button>
+
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -460,6 +514,15 @@ const Versions: React.FC = () => {
                       >
                         <Edit3 className="w-4 h-4" />
                         Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditCompanyName(version)}
+                        className="flex items-center gap-2 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      >
+                        <Target className="w-4 h-4" />
+                        Edit Company
                       </Button>
                       <Button
                         variant="outline"
@@ -550,6 +613,61 @@ const Versions: React.FC = () => {
                 <Upload className="w-5 h-5" />
                 Upload Another Resume
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Company Name Modal */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Edit Company Name
+                </h3>
+                <button
+                  onClick={handleCancelEdit}
+                  className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Company Name
+                </label>
+                <Input
+                  value={editCompanyName}
+                  onChange={(e) => setEditCompanyName(e.target.value)}
+                  placeholder="Enter company name..."
+                  className="w-full"
+                  autoFocus
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleUpdateCompanyName();
+                    }
+                  }}
+                />
+              </div>
+              
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={updating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleUpdateCompanyName}
+                  loading={updating}
+                  disabled={!editCompanyName.trim() || updating}
+                >
+                  {updating ? 'Updating...' : 'Update'}
+                </Button>
+              </div>
             </div>
           </div>
         )}
