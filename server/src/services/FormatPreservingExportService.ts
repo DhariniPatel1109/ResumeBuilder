@@ -199,7 +199,7 @@ export class FormatPreservingExportService {
       if (exp.duration) formatted += `${exp.duration}\n`;
       if (exp.location) formatted += `${exp.location}\n`;
       if (exp.bullets && Array.isArray(exp.bullets)) {
-        formatted += exp.bullets.map(bullet => `• ${bullet}`).join('\n');
+        formatted += exp.bullets.map((bullet: string) => `• ${bullet}`).join('\n');
       }
       return formatted;
     }).join('\n\n');
@@ -216,7 +216,7 @@ export class FormatPreservingExportService {
         formatted += `Technologies: ${project.technologies.join(', ')}\n`;
       }
       if (project.bullets && Array.isArray(project.bullets)) {
-        formatted += project.bullets.map(bullet => `• ${bullet}`).join('\n');
+        formatted += project.bullets.map((bullet: string) => `• ${bullet}`).join('\n');
       }
       return formatted;
     }).join('\n\n');

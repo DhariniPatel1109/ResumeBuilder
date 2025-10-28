@@ -115,8 +115,8 @@ class VersionService {
     try {
       console.log('🗑️ Deleting version:', versionId);
       
-      await axios.delete(`${API_ENDPOINTS.DELETE_VERSION}/${versionId}`);
-      console.log('✅ Version deleted successfully');
+      const response = await axios.delete(`${API_ENDPOINTS.DELETE_VERSION}/${versionId}`);
+      console.log('✅ Version deleted successfully:', response.data);
       return true;
     } catch (error) {
       console.error('❌ Error deleting version:', error);

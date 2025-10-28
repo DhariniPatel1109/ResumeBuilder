@@ -101,9 +101,9 @@ export class DocumentParser {
     logger.info('Dynamic parsing completed', {
       totalSections: Object.keys(detectedSections).length,
       sectionNames: Object.keys(detectedSections),
-      personalSummaryLength: sections.personalSummary.length,
-      workExperienceEntries: sections.workExperience.length,
-      projectsEntries: sections.projects.length
+      personalSummaryLength: (sections.personalSummary || '').length,
+      workExperienceEntries: (sections.workExperience || []).length,
+      projectsEntries: (sections.projects || []).length
     }, 'DocumentParser');
 
     return sections;

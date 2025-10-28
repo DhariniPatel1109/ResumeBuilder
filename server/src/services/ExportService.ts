@@ -42,7 +42,7 @@ export class ExportService {
           }),
           
           // Add work experience sections
-          ...sections.workExperience.flatMap(exp => [
+          ...(sections.workExperience || []).flatMap(exp => [
             new Paragraph({
               children: [
                 new TextRun({
@@ -92,7 +92,7 @@ export class ExportService {
           }),
           
           // Add project sections
-          ...sections.projects.flatMap(project => [
+          ...(sections.projects || []).flatMap(project => [
             new Paragraph({
               children: [
                 new TextRun({
@@ -155,7 +155,7 @@ export class ExportService {
         <p>${sections.personalSummary || ''}</p>
         
         <h1>WORK EXPERIENCE</h1>
-        ${sections.workExperience.map(exp => `
+        ${(sections.workExperience || []).map(exp => `
           <h2>${exp.title}</h2>
           <h3>${exp.company}</h3>
           <p><strong>Duration:</strong> ${exp.duration}</p>
@@ -165,7 +165,7 @@ export class ExportService {
         `).join('')}
         
         <h1>PROJECTS</h1>
-        ${sections.projects.map(project => `
+        ${(sections.projects || []).map(project => `
           <h2>${project.name}</h2>
           <p>${project.description}</p>
           <ul>

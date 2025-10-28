@@ -37,8 +37,8 @@ export class AIResumeParser {
       const regexParsed = DocumentParser.detectSections(rawText);
       logger.debug('Regex parsing completed', {
         sections: Object.keys(regexParsed.dynamicSections || {}),
-        workExperienceCount: regexParsed.workExperience.length,
-        projectsCount: regexParsed.projects.length
+        workExperienceCount: (regexParsed.workExperience || []).length,
+        projectsCount: (regexParsed.projects || []).length
       }, 'AIResumeParser');
 
       // Step 3: Enhance with AI if available
@@ -228,9 +228,9 @@ IMPORTANT:
    */
   private static calculateImprovements(original: ResumeSection, enhanced: ResumeSection): any {
     return {
-      workExperienceImprovement: enhanced.workExperience.length - original.workExperience.length,
-      projectsImprovement: enhanced.projects.length - original.projects.length,
-      personalSummaryImprovement: enhanced.personalSummary.length - original.personalSummary.length,
+      workExperienceImprovement: (enhanced.workExperience || []).length - (original.workExperience || []).length,
+      projectsImprovement: (enhanced.projects || []).length - (original.projects || []).length,
+      personalSummaryImprovement: (enhanced.personalSummary || '').length - (original.personalSummary || '').length,
       dynamicSectionsImprovement: Object.keys(enhanced.dynamicSections || {}).length - Object.keys(original.dynamicSections || {}).length
     };
   }
@@ -259,7 +259,7 @@ IMPORTANT:
     }
 
     // Check work experience quality
-    parsed.sections.workExperience.forEach((exp, index) => {
+    (parsed.sections.workExperience || []).forEach((exp, index) => {
       if (!exp.company || exp.company.length < 2) {
         issues.push(`Work experience ${index + 1} missing company name`);
         score -= 5;
@@ -275,7 +275,7 @@ IMPORTANT:
     });
 
     // Check projects quality
-    parsed.sections.projects.forEach((project, index) => {
+    (parsed.sections.projects || []).forEach((project, index) => {
       if (!project.name || project.name.length < 2) {
         issues.push(`Project ${index + 1} missing name`);
         score -= 5;

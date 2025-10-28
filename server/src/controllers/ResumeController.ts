@@ -169,6 +169,57 @@ export class ResumeController {
   }
 
   /**
+   * Delete a version
+   */
+  static async deleteVersion(req: Request, res: Response): Promise<void> {
+    try {
+      const versionId = req.params.id;
+      
+      logger.apiRequest('DELETE', `/api/versions/${versionId}`, { versionId });
+
+      if (!versionId) {
+        res.status(400).json({ 
+          success: false, 
+          error: 'Version ID is required' 
+        });
+        return;
+      }
+
+      const deleted = await VersionManager.deleteVersion(versionId);
+
+      if (!deleted) {
+        logger.warn('Version not found for deletion', { versionId }, 'ResumeController');
+        res.status(404).json({ 
+          success: false, 
+          error: 'Version not found' 
+        });
+        return;
+      }
+
+      logger.info('Version deleted successfully', { versionId }, 'ResumeController');
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Version deleted successfully'
+      };
+
+      res.json(response);
+
+    } catch (error) {
+      logger.error('Delete version error', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        versionId: req.params.id
+      }, 'ResumeController');
+      
+      const response: ApiResponse = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete version'
+      };
+      res.status(500).json(response);
+    }
+  }
+
+  /**
    * Export resume as Word document
    */
   static async exportWord(req: Request, res: Response): Promise<void> {

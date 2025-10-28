@@ -12,6 +12,9 @@ router.post('/save-version', ResumeController.saveVersion);
 // Get all saved versions
 router.get('/versions', ResumeController.getVersions);
 
+// Delete a version
+router.delete('/versions/:id', ResumeController.deleteVersion);
+
 // Export resume as Word document
 router.post('/export/word', ResumeController.exportWord);
 
