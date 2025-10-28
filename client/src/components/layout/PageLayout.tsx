@@ -28,16 +28,16 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   const { theme, isDark, toggleTheme } = useTheme();
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${className}`}>
+    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${className}`}>
       {/* Header */}
       {!hideHeader && (title || headerActions || (breadcrumbs && breadcrumbs.length > 0)) && (
-        <header className="bg-white border-b border-gray-200 shadow-sm">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
           <div className={theme.layout.container.base}>
             <div className="py-6">
               {/* Breadcrumbs */}
               {breadcrumbs && breadcrumbs.length > 0 && (
                 <nav className="mb-4">
-                  <ol className="flex items-center space-x-2 text-sm text-gray-500">
+                  <ol className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
                     {breadcrumbs.map((crumb, index) => (
                       <li key={index} className="flex items-center">
                         {index > 0 && (
@@ -46,11 +46,11 @@ const PageLayout: React.FC<PageLayoutProps> = ({
                           </svg>
                         )}
                         {crumb.href ? (
-                          <a href={crumb.href} className="hover:text-primary-600 transition-colors">
+                          <a href={crumb.href} className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                             {crumb.label}
                           </a>
                         ) : (
-                          <span className={index === breadcrumbs.length - 1 ? 'text-gray-900 font-medium' : ''}>
+                          <span className={index === breadcrumbs.length - 1 ? 'text-gray-900 dark:text-white font-medium' : ''}>
                             {crumb.label}
                           </span>
                         )}
@@ -64,10 +64,10 @@ const PageLayout: React.FC<PageLayoutProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   {title && (
-                    <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
                   )}
                   {subtitle && (
-                    <p className="mt-2 text-lg text-gray-600">{subtitle}</p>
+                    <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">{subtitle}</p>
                   )}
                 </div>
                 

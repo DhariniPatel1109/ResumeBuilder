@@ -30,7 +30,8 @@ const Card: React.FC<CardProps> = ({
     baseClasses,
     variantClasses,
     paddingClasses,
-    onClick ? 'cursor-pointer hover:shadow-md transition-shadow duration-200' : '',
+    onClick ? 'cursor-pointer hover:shadow-md dark:hover:shadow-gray-900/40 transition-shadow duration-200' : '',
+    'hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all',
     className
   ].filter(Boolean).join(' ');
 

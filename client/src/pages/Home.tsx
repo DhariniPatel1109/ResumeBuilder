@@ -79,7 +79,7 @@ const Home: React.FC = () => {
 
             {/* Upload Component */}
             <div className="max-w-2xl mx-auto">
-              <Card variant="elevated" padding="lg" className="border-0 shadow-2xl">
+              <Card variant="elevated" padding="lg" className="border-0 shadow-2xl bg-white dark:bg-gray-800">
                 <FileUpload 
                   onUploadSuccess={handleUploadSuccess}
                   isUploading={isUploading}
@@ -109,7 +109,7 @@ const Home: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Feature 1 */}
-              <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200">
+              <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200 bg-white dark:bg-gray-800">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
                   <Target className="w-8 h-8 text-white" />
                 </div>
@@ -122,7 +122,7 @@ const Home: React.FC = () => {
               </Card>
 
               {/* Feature 2 */}
-              <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200">
+              <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200 bg-white dark:bg-gray-800">
                 <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
                   <FileText className="w-8 h-8 text-white" />
                 </div>
@@ -135,7 +135,7 @@ const Home: React.FC = () => {
               </Card>
 
               {/* Feature 3 */}
-              <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200">
+              <Card variant="elevated" padding="lg" className="text-center group hover:scale-105 transition-transform duration-200 bg-white dark:bg-gray-800">
                 <div className="w-16 h-16 bg-gradient-to-r from-success-500 to-success-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-200">
                   <Zap className="w-8 h-8 text-white" />
                 </div>
@@ -192,7 +192,7 @@ const Home: React.FC = () => {
                 const IconComponent = item.icon;
                 return (
                   <div key={index} className="relative">
-                  <Card variant="elevated" padding="lg" className="text-center h-full">
+                  <Card variant="elevated" padding="lg" className="text-center h-full bg-white dark:bg-gray-800">
                     <div className="text-6xl font-bold text-primary-500 dark:text-primary-400 mb-4">
                       {item.step}
                     </div>
@@ -234,7 +234,7 @@ const Home: React.FC = () => {
             <Button
               size="xl"
               variant="outline"
-              className="bg-white text-primary-600 hover:bg-gray-50 border-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 flex items-center gap-2"
+              className="bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-white dark:border-gray-600 px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 flex items-center gap-2"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
               <Upload className="w-5 h-5" />

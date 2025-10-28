@@ -76,7 +76,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       <Card 
         variant="elevated" 
         padding="lg"
-        className={`relative transition-all duration-200 ${
+        className={`relative transition-all duration-200 bg-white dark:bg-gray-800 ${
           dragActive 
             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
             : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
@@ -145,15 +145,15 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
       {/* Error Message */}
       {error && (
-        <div className="mt-4 p-4 bg-error-50 border border-error-200 rounded-lg">
+        <div className="mt-4 p-4 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg">
           <div className="flex items-center gap-2">
-            <span className="text-error-600 text-lg">⚠️</span>
-            <p className="text-error-800 font-medium">{error}</p>
+            <span className="text-error-600 dark:text-error-400 text-lg">⚠️</span>
+            <p className="text-error-800 dark:text-error-200 font-medium">{error}</p>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setError(null)}
-              className="ml-auto text-error-600 hover:text-error-800"
+              className="ml-auto text-error-600 dark:text-error-400 hover:text-error-800 dark:hover:text-error-200"
             >
               ✕
             </Button>

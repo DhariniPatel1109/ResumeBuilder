@@ -69,11 +69,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     console.log('Theme state changed:', { isDark, darkClass: isDark ? 'dark' : '' });
   }, [isDark]);
 
+  // Apply dark class to HTML element
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    console.log('Applying dark mode:', isDark);
+    if (isDark) {
+      htmlElement.classList.add('dark');
+      console.log('Dark class added to HTML');
+    } else {
+      htmlElement.classList.remove('dark');
+      console.log('Dark class removed from HTML');
+    }
+  }, [isDark]);
+
   return (
     <ThemeContext.Provider value={value}>
-      <div className={isDark ? 'dark' : ''}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 };

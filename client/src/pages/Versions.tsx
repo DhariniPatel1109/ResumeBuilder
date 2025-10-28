@@ -135,8 +135,8 @@ const Versions: React.FC = () => {
       <PageLayout title="Loading Versions...">
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
-            <RefreshCw className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading saved versions...</p>
+            <RefreshCw className="w-12 h-12 text-primary-500 dark:text-primary-400 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-300">Loading saved versions...</p>
           </div>
         </div>
       </PageLayout>
@@ -150,7 +150,7 @@ const Versions: React.FC = () => {
       <div className="space-y-6 max-w-6xl mx-auto">
         {/* Stats Overview - Only show if meaningful */}
         {versions.length > 0 && (stats.thisWeek > 0 || stats.thisMonth > 0) && (
-          <div className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-xl p-6 mb-8">
+          <div className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30 dark:border dark:border-gray-700 rounded-xl p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Progress</h3>
               <div className="text-sm text-gray-600 dark:text-gray-300">
@@ -184,12 +184,12 @@ const Versions: React.FC = () => {
             {/* Search */}
             <div className="flex-1 max-w-md">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                 <Input
                   placeholder="Search versions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10"
+                  className="w-full pl-10 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
             </div>
@@ -200,7 +200,7 @@ const Versions: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400 transition-colors"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -216,8 +216,8 @@ const Versions: React.FC = () => {
                 onClick={() => setViewMode('grid')}
                 className={`p-1.5 rounded transition-colors ${
                   viewMode === 'grid'
-                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                    ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
+                    : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 <Grid3X3 className="w-4 h-4" />
@@ -226,8 +226,8 @@ const Versions: React.FC = () => {
                 onClick={() => setViewMode('list')}
                 className={`p-1.5 rounded transition-colors ${
                   viewMode === 'list'
-                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                    ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
+                    : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 <List className="w-4 h-4" />
@@ -237,18 +237,18 @@ const Versions: React.FC = () => {
         )}
         {/* Error State */}
         {error && (
-          <Card variant="elevated" padding="lg" className="border-error-200 bg-error-50">
+          <Card variant="elevated" padding="lg" className="border-error-200 dark:border-error-800 bg-error-50 dark:bg-error-900/20">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="w-6 h-6 text-error-600" />
+              <AlertTriangle className="w-6 h-6 text-error-600 dark:text-error-400" />
               <div>
-                <h3 className="text-error-800 font-semibold">Error Loading Versions</h3>
-                <p className="text-error-600">{error}</p>
+                <h3 className="text-error-800 dark:text-error-200 font-semibold">Error Loading Versions</h3>
+                <p className="text-error-600 dark:text-error-400">{error}</p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={fetchVersions}
-                className="ml-auto border-error-300 text-error-700 hover:bg-error-100 flex items-center gap-2"
+                className="ml-auto border-error-300 dark:border-error-700 text-error-700 dark:text-error-400 hover:bg-error-100 dark:hover:bg-error-900/30 flex items-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 Retry
@@ -370,7 +370,7 @@ const Versions: React.FC = () => {
                           {VersionService.getVersionHighlights(version.sections).length > 0 && (
                             <div className="space-y-1">
                               {VersionService.getVersionHighlights(version.sections).map((highlight, idx) => (
-                                <div key={idx} className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-md">
+                                <div key={idx} className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 px-2 py-1 rounded-md">
                                   {highlight}
                                 </div>
                               ))}
@@ -407,7 +407,7 @@ const Versions: React.FC = () => {
                           onClick={() => handleExportVersion(version, 'pdf')}
                           disabled={exporting === version.id}
                           loading={exporting === version.id}
-                          className="flex-1 text-sm py-2 border-primary-200 text-primary-700 hover:bg-primary-50 flex items-center gap-2"
+                          className="flex-1 text-sm py-2 border-primary-200 dark:border-primary-700 text-primary-700 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 flex items-center gap-2"
                         >
                           <FileDown className="w-4 h-4" />
                           PDF
@@ -418,7 +418,7 @@ const Versions: React.FC = () => {
                           onClick={() => handleExportVersion(version, 'word')}
                           disabled={exporting === version.id}
                           loading={exporting === version.id}
-                          className="flex-1 text-sm py-2 border-blue-200 text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                          className="flex-1 text-sm py-2 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2"
                         >
                           <FileText className="w-4 h-4" />
                           Word
@@ -467,7 +467,7 @@ const Versions: React.FC = () => {
                         onClick={() => handleExportVersion(version, 'word')}
                         disabled={exporting === version.id}
                         loading={exporting === version.id}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                       >
                         <FileText className="w-4 h-4" />
                         Word
@@ -478,7 +478,7 @@ const Versions: React.FC = () => {
                         onClick={() => handleExportVersion(version, 'pdf')}
                         disabled={exporting === version.id}
                         loading={exporting === version.id}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 border-primary-200 dark:border-primary-700 text-primary-700 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                       >
                         <FileDown className="w-4 h-4" />
                         PDF
@@ -487,7 +487,7 @@ const Versions: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteVersion(version.id)}
-                        className="text-gray-400 hover:text-error-600"
+                        className="text-gray-400 dark:text-gray-500 hover:text-error-600 dark:hover:text-error-500"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -502,7 +502,7 @@ const Versions: React.FC = () => {
         {/* No Results */}
         {versions.length > 0 && filteredVersions.length === 0 && (
           <div className="text-center py-12">
-            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <Search className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               No versions found
             </h3>
@@ -522,7 +522,7 @@ const Versions: React.FC = () => {
 
         {/* Quick Actions */}
         {versions.length > 0 && (
-          <div className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-xl p-6 mt-8">
+          <div className="bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/30 dark:to-secondary-900/30 dark:border dark:border-gray-700 rounded-xl p-6 mt-8">
             <div className="text-center mb-6">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Ready to Create More?

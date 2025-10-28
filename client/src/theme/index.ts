@@ -159,7 +159,7 @@ export const theme = {
   components: {
     // Button Styles
     button: {
-      base: 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+      base: 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed',
       sizes: {
         sm: 'px-3 py-1.5 text-sm rounded-md',
         base: 'px-4 py-2 text-base rounded-lg',
@@ -167,37 +167,37 @@ export const theme = {
         xl: 'px-8 py-4 text-xl rounded-xl',
       },
       variants: {
-        primary: 'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-md hover:shadow-lg',
-        secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 shadow-md hover:shadow-lg',
-        outline: 'border-2 border-primary-500 text-primary-500 hover:bg-primary-50 focus:ring-primary-500',
-        ghost: 'text-primary-500 hover:bg-primary-50 focus:ring-primary-500',
-        danger: 'bg-error-500 text-white hover:bg-error-600 focus:ring-error-500 shadow-md hover:shadow-lg',
-        success: 'bg-success-500 text-white hover:bg-success-600 focus:ring-success-500 shadow-md hover:shadow-lg',
+        primary: 'bg-primary-500 dark:bg-primary-600 text-white hover:bg-primary-600 dark:hover:bg-primary-700 focus:ring-primary-500 dark:focus:ring-primary-400 shadow-md hover:shadow-lg',
+        secondary: 'bg-secondary-500 dark:bg-secondary-600 text-white hover:bg-secondary-600 dark:hover:bg-secondary-700 focus:ring-secondary-500 dark:focus:ring-secondary-400 shadow-md hover:shadow-lg',
+        outline: 'border-2 border-primary-500 dark:border-primary-400 text-primary-500 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 focus:ring-primary-500 dark:focus:ring-primary-400',
+        ghost: 'text-primary-500 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 focus:ring-primary-500 dark:focus:ring-primary-400',
+        danger: 'bg-error-500 dark:bg-error-600 text-white hover:bg-error-600 dark:hover:bg-error-700 focus:ring-error-500 dark:focus:ring-error-400 shadow-md hover:shadow-lg',
+        success: 'bg-success-500 dark:bg-success-600 text-white hover:bg-success-600 dark:hover:bg-success-700 focus:ring-success-500 dark:focus:ring-success-400 shadow-md hover:shadow-lg',
       },
     },
     
     // Input Styles
     input: {
-      base: 'w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-base transition-all duration-200 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 disabled:bg-gray-100 disabled:cursor-not-allowed',
+      base: 'w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg text-base transition-all duration-200 focus:outline-none focus:border-primary-500 dark:focus:border-primary-400 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/20 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100',
       sizes: {
         sm: 'px-3 py-2 text-sm',
         base: 'px-4 py-3 text-base',
         lg: 'px-5 py-4 text-lg',
       },
       variants: {
-        default: 'bg-white border-gray-200 focus:border-primary-500',
-        error: 'bg-white border-error-500 focus:border-error-500 focus:ring-error-100',
-        success: 'bg-white border-success-500 focus:border-success-500 focus:ring-success-100',
+        default: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 focus:border-primary-500 dark:focus:border-primary-400',
+        error: 'bg-white dark:bg-gray-800 border-error-500 dark:border-error-600 focus:border-error-500 dark:focus:border-error-600 focus:ring-error-100 dark:focus:ring-error-900/20',
+        success: 'bg-white dark:bg-gray-800 border-success-500 dark:border-success-600 focus:border-success-500 dark:focus:border-success-600 focus:ring-success-100 dark:focus:ring-success-900/20',
       },
     },
     
     // Card Styles
     card: {
-      base: 'bg-white border border-gray-200 rounded-xl shadow-sm',
+      base: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm',
       variants: {
-        default: 'shadow-sm',
-        elevated: 'shadow-md',
-        floating: 'shadow-lg',
+        default: 'shadow-sm dark:shadow-gray-900/20',
+        elevated: 'shadow-md dark:shadow-gray-900/30',
+        floating: 'shadow-lg dark:shadow-gray-900/30',
       },
       padding: {
         sm: 'p-4',
@@ -209,8 +209,8 @@ export const theme = {
     // Section Styles
     section: {
       header: 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white p-6 rounded-t-xl',
-      content: 'p-6',
-      footer: 'bg-gray-50 p-4 rounded-b-xl border-t border-gray-200',
+      content: 'p-6 dark:bg-gray-800',
+      footer: 'bg-gray-50 dark:bg-gray-800 p-4 rounded-b-xl border-t border-gray-200 dark:border-gray-700',
     },
   },
   
