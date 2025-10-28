@@ -96,23 +96,49 @@ const ResumeEditor: React.FC = () => {
     });
   };
 
+  // Company name modal state
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'save' | 'export' | null>(null);
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'word' | null>(null);
+  const [tempCompanyName, setTempCompanyName] = useState('');
+
   // Company name handlers
   const handleSaveWithCompany = async () => {
     if (!companyName.trim()) {
-      const company = prompt('Enter company name for this version:');
-      if (!company?.trim()) return;
-      setCompanyName(company.trim());
+      setPendingAction('save');
+      setTempCompanyName('');
+      setShowCompanyModal(true);
+      return;
     }
     await saveVersion();
   };
 
   const handleExportWithCompany = async (format: 'pdf' | 'word') => {
     if (!companyName.trim()) {
-      const company = prompt(`Enter company name for ${format.toUpperCase()} export:`);
-      if (!company?.trim()) return;
-      setCompanyName(company.trim());
+      setPendingAction('export');
+      setExportFormat(format);
+      setTempCompanyName('');
+      setShowCompanyModal(true);
+      return;
     }
     await exportResume(format);
+  };
+
+  const handleCompanySubmit = async () => {
+    if (!tempCompanyName.trim()) return;
+    
+    setCompanyName(tempCompanyName.trim());
+    setShowCompanyModal(false);
+    
+    if (pendingAction === 'save') {
+      await saveVersion();
+    } else if (pendingAction === 'export' && exportFormat) {
+      await exportResume(exportFormat);
+    }
+    
+    setPendingAction(null);
+    setExportFormat(null);
+    setTempCompanyName('');
   };
 
 
@@ -191,11 +217,11 @@ const ResumeEditor: React.FC = () => {
 
   return (
     <PageLayout>
-      <div className="flex h-[calc(100vh-200px)] gap-6">
+      <div className={`flex h-[calc(100vh-60px)] ${sidebarCollapsed ? 'gap-2' : 'gap-6'}`}>
         {/* Sidebar Navigation */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-80'} transition-all duration-300 flex-shrink-0`}>
-          <Card variant="elevated" className="h-full">
-            <div className={`border-b border-gray-200 dark:border-gray-700 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
+        <div className={`${sidebarCollapsed ? 'w-24' : 'w-80'} transition-all duration-300 flex-shrink-0`}>
+          <Card variant="elevated" className="h-full flex flex-col p-2">
+            <div className="border-b border-gray-200 dark:border-gray-700 pb-3 mb-3">
               <div className="flex items-center justify-between">
                 <h3 className={`font-semibold text-gray-900 dark:text-white ${sidebarCollapsed ? 'hidden' : 'block'}`}>
                   Resume Sections
@@ -211,7 +237,7 @@ const ResumeEditor: React.FC = () => {
               </div>
             </div>
 
-            <div className={`flex-1 overflow-y-auto space-y-2 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
+            <div className="flex-1 space-y-2">
               {sections.map((section) => {
                 const IconComponent = section.icon;
                 return (
@@ -225,7 +251,7 @@ const ResumeEditor: React.FC = () => {
                     }`}
                     title={sidebarCollapsed ? section.title : undefined}
                   >
-                    <IconComponent className="w-5 h-5" />
+                    <IconComponent className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
                     {!sidebarCollapsed && (
                       <span className="font-medium">{section.title}</span>
                     )}
@@ -242,8 +268,56 @@ const ResumeEditor: React.FC = () => {
                   className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-2' : 'gap-2'}`}
                   title={sidebarCollapsed ? "AI Enhance" : undefined}
                 >
-                  <Bot className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
+                  <Bot className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} />
                   {!sidebarCollapsed && "AI Enhance"}
+                </Button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className={`pt-4 border-t border-gray-200 dark:border-gray-700 mt-4 ${sidebarCollapsed ? 'space-y-3' : 'space-y-2'}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-3 h-10' : 'gap-2'}`}
+                  title={sidebarCollapsed ? (showPreview ? 'Switch to Edit Mode' : 'Switch to Preview Mode') : undefined}
+                >
+                  {showPreview ? <Edit3 className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Eye className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} />}
+                  {!sidebarCollapsed && (showPreview ? 'Edit Mode' : 'Preview Mode')}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExportWithCompany('pdf')}
+                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-3 h-10' : 'gap-2'}`}
+                  title={sidebarCollapsed ? "Export as PDF" : undefined}
+                >
+                  <FileDown className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} />
+                  {!sidebarCollapsed && "Export PDF"}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExportWithCompany('word')}
+                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-3 h-10' : 'gap-2'}`}
+                  title={sidebarCollapsed ? "Export as Word" : undefined}
+                >
+                  <FileText className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} />
+                  {!sidebarCollapsed && "Export Word"}
+                </Button>
+                
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleSaveWithCompany()}
+                  loading={isSaving}
+                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center p-3 h-10' : 'gap-2'}`}
+                  title={sidebarCollapsed ? "Save Current Version" : undefined}
+                >
+                  {isSaving ? <Loader2 className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-4 h-4'} animate-spin`} /> : <Save className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-4 h-4'}`} />}
+                  {!sidebarCollapsed && (isSaving ? 'Saving...' : 'Save Version')}
                 </Button>
               </div>
 
@@ -252,59 +326,14 @@ const ResumeEditor: React.FC = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Floating Action Bar */}
-          <div className="flex items-center justify-end mb-4">
-            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPreview(!showPreview)}
-                className="h-9 px-3 flex items-center gap-2"
-              >
-                {showPreview ? <Edit3 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                {showPreview ? 'Edit' : 'Preview'}
-              </Button>
-              
-              <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExportWithCompany('pdf')}
-                className="h-9 px-3 flex items-center gap-2"
-              >
-                <FileDown className="w-4 h-4" />
-                PDF
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleExportWithCompany('word')}
-                className="h-9 px-3 flex items-center gap-2"
-              >
-                <FileText className="w-4 h-4" />
-                Word
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => handleSaveWithCompany()}
-                loading={isSaving}
-                className="h-9 px-3 flex items-center gap-2"
-              >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Save
-              </Button>
-            </div>
-          </div>
+        <div className="flex-1 flex flex-col min-h-0">
 
           {/* Content Area */}
           <div className="flex-1 flex gap-6">
             {/* Editor Panel */}
-            <div className={`${showPreview ? 'w-1/2' : 'w-full'} transition-all duration-300`}>
-              <Card variant="elevated" padding="lg" className="h-full">
-                <div className="h-full overflow-y-auto">
+            <div className={`${showPreview ? 'w-1/2' : 'w-full'} transition-all duration-300 min-h-0`}>
+              <Card variant="elevated" padding="lg" className="h-full flex flex-col">
+                <div className="flex-1 overflow-y-auto">
                   {/* Section Content will go here */}
                   <div className="space-y-6">
                     {activeSection === 'personalSummary' && (
@@ -950,6 +979,62 @@ const ResumeEditor: React.FC = () => {
           resumeData={resumeData}
           onApplySuggestions={handleApplyAISuggestions}
         />
+
+      {/* Company Name Modal */}
+      {showCompanyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {pendingAction === 'save' ? 'Save Version' : `Export ${exportFormat?.toUpperCase()}`}
+              </h3>
+              <button
+                onClick={() => setShowCompanyModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Company Name
+              </label>
+              <Input
+                value={tempCompanyName}
+                onChange={(e) => setTempCompanyName(e.target.value)}
+                placeholder="Enter company name..."
+                className="w-full"
+                autoFocus
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCompanySubmit();
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                This will be used for the {pendingAction === 'save' ? 'version name' : 'file name'}
+              </p>
+            </div>
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowCompanyModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleCompanySubmit}
+                disabled={!tempCompanyName.trim()}
+              >
+                {pendingAction === 'save' ? 'Save Version' : `Export ${exportFormat?.toUpperCase()}`}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </PageLayout>
   );
