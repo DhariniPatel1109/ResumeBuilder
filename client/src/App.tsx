@@ -5,7 +5,6 @@ import Header from './components/navigation/Header';
 import Home from './pages/Home';
 import ResumeEditor from './pages/ResumeEditor';
 import Versions from './pages/Versions';
-import './App.css';
 
 function App() {
   return (
